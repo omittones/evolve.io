@@ -65,9 +65,9 @@ namespace core
                 }
                 textAlign(AlignText.CENTER);
                 textFont(font, 21);
-                text(nf(100*foodLevel, 0, 2) + " yums", (posX + 0.5)*scaleUp, (posY + 0.3)*scaleUp);
-                text("Clim: " + nf(climateType, 0, 2), (posX + 0.5)*scaleUp, (posY + 0.6)*scaleUp);
-                text("Food: " + nf(foodType, 0, 2), (posX + 0.5)*scaleUp, (posY + 0.9)*scaleUp);
+                text((100*foodLevel).ToString(0, 2) + " yums", (posX + 0.5)*scaleUp, (posY + 0.3)*scaleUp);
+                text("Clim: " + climateType.ToString(0, 2), (posX + 0.5)*scaleUp, (posY + 0.6)*scaleUp);
+                text("Food: " + foodType.ToString(0, 2), (posX + 0.5)*scaleUp, (posY + 0.9)*scaleUp);
             }
         }
 

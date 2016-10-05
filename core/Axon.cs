@@ -2,20 +2,19 @@ using System;
 
 namespace core
 {
-    public class Axon : Helpers
+    public class Axon
     {
-        private readonly double MUTABILITY_MUTABILITY = 0.7;
-        private readonly int mutatePower = 9;
         private readonly double MUTATE_MULTI;
-
-        public double weight;
-        public double mutability;
+        private const double MUTABILITY_MUTABILITY = 0.7;
+        private const int MUTATE_POWER = 9;
+        public readonly double weight;
+        public readonly double mutability;
 
         public Axon(double w, double m)
         {
             weight = w;
             mutability = m;
-            MUTATE_MULTI = Math.Pow(0.5, mutatePower);
+            MUTATE_MULTI = Math.Pow(0.5, MUTATE_POWER);
         }
 
         public Axon mutateAxon()
@@ -24,14 +23,14 @@ namespace core
             return new Axon(weight + r()*mutability/MUTATE_MULTI, mutability*mutabilityMutate);
         }
 
-        public double r()
+        private double r()
         {
-            return Math.Pow(pmRan(), mutatePower);
+            return Math.Pow(pmRan(), MUTATE_POWER);
         }
 
-        public double pmRan()
+        private double pmRan()
         {
-            return (random()*2 - 1);
+            return (Rnd.Next()*2 - 1);
         }
     }
 }

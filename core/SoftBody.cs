@@ -5,19 +5,17 @@ namespace core
 {
     public class SoftBody : Helpers
     {
+        public const float ENERGY_DENSITY = (float) (1.0/(0.2*0.2*Math.PI));
+
         public double px;
         public double py;
         public double vx;
         public double vy;
         public double energy;
-
-        private readonly float ENERGY_DENSITY = (float) (1.0/(0.2*0.2*Math.PI));
-        //set so when a creature is of minimum size, it equals one.
-
         public double density;
-        public double hue;
-        public double saturation;
-        public double brightness;
+        public double myHue;
+        public double mySaturation;
+        public double myBrightness;
         public double birthTime;
         public bool isCreature = false;
         public readonly float FRICTION = 0.03f;
@@ -46,9 +44,9 @@ namespace core
             vy = tvy;
             energy = tenergy;
             density = tdensity;
-            hue = thue;
-            saturation = tsaturation;
-            brightness = tbrightness;
+            myHue = thue;
+            mySaturation = tsaturation;
+            myBrightness = tbrightness;
             board = tb;
             setSBIP(false);
             setSBIP(false); // just to set previous SBIPs as well.
@@ -151,7 +149,7 @@ namespace core
             fightLevel = 0;
         }
 
-        public void applyMotions(double timeStep)
+        public virtual void applyMotions(double timeStep)
         {
             px = xBodyBound(px + vx*timeStep);
             py = yBodyBound(py + vy*timeStep);
@@ -165,7 +163,7 @@ namespace core
             var radius = getRadius();
             stroke(0);
             strokeWeight(2);
-            fill((float) hue, (float) saturation, (float) brightness);
+            fill((float) myHue, (float) mySaturation, (float) myBrightness);
             this.ellipseMode(EllipseMode.RADIUS);
             this.ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (radius*scaleUp), (float) (radius*scaleUp));
         }

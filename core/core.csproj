@@ -54,6 +54,7 @@
     <Compile Include="EllipseMode.cs" />
     <Compile Include="EvolvioColor.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="Key.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,7 +66,9 @@
     <Compile Include="PFont.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rnd.cs" />
     <Compile Include="SoftBody.cs" />
+    <Compile Include="StringEx.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="AlignText.cs" />
     <EmbeddedResource Include="Main.resx">

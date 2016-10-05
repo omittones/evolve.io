@@ -51,7 +51,7 @@ namespace core
 
         public void ellipseMode(int mode)
         {
-        
+
         }
 
         public void ellipse(float a, float b, float c = 0, float d = 0)
@@ -59,44 +59,6 @@ namespace core
         }
 
         public void translate(float x, float y)
-        {
-        }
-
-        public float random(double min, double max)
-        {
-            return 0;
-        }
-
-        public int random(int min, int max)
-        {
-            return 0;
-        }
-
-        public int random()
-        {
-            return 0;
-        }
-
-        public float pow(float value, double pow)
-        {
-            return 0;
-        }
-
-        public float noise(float a, float b)
-        {
-            return 0;
-        }
-
-        public float noise(double a, double b)
-        {
-            return 0;
-        }
-
-        public void noiseSeed(int seed)
-        {
-        }
-
-        public void randomSeed(int seed)
         {
         }
 
@@ -190,11 +152,6 @@ namespace core
         public void textFont(PFont font, float size)
         {
 
-        }
-
-        public string nf(params object[] items)
-        {
-            return "";
         }
     }
 }

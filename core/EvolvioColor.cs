@@ -4,46 +4,43 @@ namespace core
 {
     public class EvolvioColor : Helpers
     {
+        public const double TIME_STEP = 0.001;
+        public const float GROSS_OVERALL_SCALE_FACTOR = ((float) WINDOW_HEIGHT)/BOARD_HEIGHT/SCALE_TO_FIX_BUG;
+        public const int CREATURE_MINIMUM = 60;
+        public const int ROCKS_TO_ADD = 0;
+        public const int SEED = 48;
+        public const int WINDOW_WIDTH = 1920;
+        public const string INITIAL_FILE_NAME = "DEFAULT";
+        public const float MAX_TEMPERATURE = 1.0f;
+        public const float MIN_TEMPERATURE = -0.5f;
+        public const float NOISE_STEP_SIZE = 0.1f;
+        public const float SCALE_TO_FIX_BUG = 100;
+        public const int BOARD_HEIGHT = 100;
+        public const int BOARD_WIDTH = 100;
+        public const int WINDOW_HEIGHT = 1080;
+
         private Board evoBoard;
-        private readonly int SEED = 48;
-        private const float NOISE_STEP_SIZE = 0.1f;
-        private const int BOARD_WIDTH = 100;
-        private const int BOARD_HEIGHT = 100;
-
-        private readonly int WINDOW_WIDTH = 1920;
-        private const int WINDOW_HEIGHT = 1080;
-        private const float SCALE_TO_FIX_BUG = 100;
-        private readonly float GROSS_OVERALL_SCALE_FACTOR = ((float) WINDOW_HEIGHT)/BOARD_HEIGHT/SCALE_TO_FIX_BUG;
-
-        private readonly double TIME_STEP = 0.001;
-        private const float MIN_TEMPERATURE = -0.5f;
-        private const float MAX_TEMPERATURE = 1.0f;
-
-        private readonly int ROCKS_TO_ADD = 0;
-        private readonly int CREATURE_MINIMUM = 60;
-
+        private bool draggedFar;
+        private float cameraR;
         private float cameraX = BOARD_WIDTH*0.5f;
         private float cameraY = BOARD_HEIGHT*0.5f;
-        private float cameraR;
-        private float zoom = 1;
-        private PFont font;
-        private int dragging; // 0 = no drag, 1 = drag screen, 2 and 3 are dragging temp extremes.
         private float prevMouseX;
         private float prevMouseY;
-        private bool draggedFar;
-        private readonly string INITIAL_FILE_NAME = "DEFAULT";
+        private float zoom = 1;
+        private int dragging; // 0 = no drag, 1 = drag screen, 2 and 3 are dragging temp extremes.
+        private PFont myFont;
 
-        private void setup()
+        public void setup()
         {
             colorMode(ColorMode.HSB, 1.0f);
-            font = loadFont("Jygquip1-48.vlw");
+            myFont = loadFont("Jygquip1-48.vlw");
             size(WINDOW_WIDTH, WINDOW_HEIGHT);
             evoBoard = new Board(BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE, MIN_TEMPERATURE, MAX_TEMPERATURE,
                 ROCKS_TO_ADD, CREATURE_MINIMUM, SEED, INITIAL_FILE_NAME, TIME_STEP);
             resetZoom();
         }
 
-        private void draw()
+        public void draw()
         {
             for (var iteration = 0; iteration < evoBoard.playSpeed; iteration++)
             {
@@ -96,14 +93,14 @@ namespace core
             evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
                 (int) toWorldYCoordinate(mouseX, mouseY));
             popMatrix();
-            evoBoard.drawUI(SCALE_TO_FIX_BUG, TIME_STEP, WINDOW_HEIGHT, 0, WINDOW_WIDTH, WINDOW_HEIGHT, font);
+            evoBoard.drawUI(SCALE_TO_FIX_BUG, TIME_STEP, WINDOW_HEIGHT, 0, WINDOW_WIDTH, WINDOW_HEIGHT, myFont);
 
             evoBoard.fileSave();
             prevMouseX = mouseX;
             prevMouseY = mouseY;
         }
 
-        private void mouseWheel(MouseEvent @event)
+        public void mouseWheel(MouseEvent @event)
         {
             float delta = @event.getCount();
             if (delta >= 0.5)
@@ -116,7 +113,7 @@ namespace core
             }
         }
 
-        private void mousePressed()
+        public void mousePressed()
         {
             if (mouseX < WINDOW_HEIGHT)
             {
@@ -261,7 +258,7 @@ namespace core
             draggedFar = false;
         }
 
-        private void mouseReleased()
+        public void mouseReleased()
         {
             if (!draggedFar)
             {

@@ -5,7 +5,6 @@ namespace core
 {
     public class Board : Helpers
     {
-
         public bool userControl;
         public bool wasPressingB;
         public color buttonColor = color(0.82, 0.8, 0.7);
@@ -58,11 +57,11 @@ namespace core
         public string folder = "TEST";
         public Tile[,] tiles;
 
-        public Board(int w, int h, float stepSize, float min1, float max1, int rta, int cm, int SEED,
-            string INITIAL_FILE_NAME, double ts)
+        public Board(int w, int h, float stepSize, float minTemp, float maxTemp, int rocksToAdd,
+            int minimumCreatures, int seed, string initialFileName, double timeStep)
         {
-            noiseSeed(SEED);
-            randomSeed(SEED);
+            Rnd.noiseSeed(seed);
+            Rnd.randomSeed(seed);
             boardWidth = w;
             boardHeight = h;
             tiles = new Tile[w, h];
@@ -70,18 +69,18 @@ namespace core
             {
                 for (var y = 0; y < boardHeight; y++)
                 {
-                    var bigForce = pow(((float) y)/boardHeight, 0.5);
+                    var bigForce = Math.Pow(((float) y)/boardHeight, 0.5);
                     var fertility =
                         (float)
-                            (noise(x*stepSize*3, y*stepSize*3)*(1 - bigForce)*5.0 +
-                             noise(x*stepSize*0.5, y*stepSize*0.5)*bigForce*5.0 - 1.5);
-                    var climateType = (float) (noise(x*stepSize + 10000, y*stepSize + 10000)*1.63 - 0.4);
+                            (Rnd.noise(x*stepSize*3, y*stepSize*3)*(1 - bigForce)*5.0 +
+                             Rnd.noise(x*stepSize*0.5, y*stepSize*0.5)*bigForce*5.0 - 1.5);
+                    var climateType = (float) (Rnd.noise(x*stepSize + 10000, y*stepSize + 10000)*1.63 - 0.4);
                     climateType = min(max(climateType, 0), 0.8f);
                     tiles[x, y] = new Tile(x, y, fertility, 0, climateType);
                 }
             }
-            MIN_TEMPERATURE = min1;
-            MAX_TEMPERATURE = max1;
+            MIN_TEMPERATURE = minTemp;
+            MAX_TEMPERATURE = maxTemp;
 
             softBodiesInPositions = new List<SoftBody>[boardWidth, boardHeight];
             for (var x = 0; x < boardWidth; x++)
@@ -92,23 +91,23 @@ namespace core
                 }
             }
 
-            ROCKS_TO_ADD = rta;
+            ROCKS_TO_ADD = rocksToAdd;
             rocks = new List<SoftBody>(0);
             for (var i = 0; i < ROCKS_TO_ADD; i++)
             {
-                rocks.Add(new SoftBody(random(0, boardWidth), random(0, boardHeight), 0, 0,
+                rocks.Add(new SoftBody(Rnd.Next(0, boardWidth), Rnd.Next(0, boardHeight), 0, 0,
                     getRandomSize(), ROCK_DENSITY, hue(ROCK_COLOR), saturation(ROCK_COLOR), brightness(ROCK_COLOR), this,
                     year));
             }
 
-            creatureMinimum = cm;
+            creatureMinimum = minimumCreatures;
             creatures = new List<Creature>(0);
             maintainCreatureMinimum(false);
             for (var i = 0; i < LIST_SLOTS; i++)
             {
                 list[i] = null;
             }
-            folder = INITIAL_FILE_NAME;
+            folder = initialFileName;
             fileSaveCounts = new int[4];
             fileSaveTimes = new double[4];
             for (var i = 0; i < 4; i++)
@@ -117,7 +116,7 @@ namespace core
                 fileSaveTimes[i] = -999;
             }
             userControl = true;
-            timeStep = ts;
+            this.timeStep = timeStep;
             populationHistory = new int[POPULATION_HISTORY_LENGTH];
             for (var i = 0; i < POPULATION_HISTORY_LENGTH; i++)
             {
@@ -162,7 +161,7 @@ namespace core
             fill(0, 0, 1);
             textAlign(AlignText.LEFT);
             textFont(font, 48);
-            var yearText = "Year " + nf((float) year, 0, 2);
+            var yearText = "Year " + ((float) year).ToString(0, 2);
             text(yearText, 10, 48);
             var seasonTextXCoor = textWidth(yearText) + 50;
             textFont(font, 24);
@@ -243,7 +242,7 @@ namespace core
                         }
                         fill(0, 0, 1);
                         text(list[i].getCreatureName() + " [" + list[i].id + "] (" + toAge(list[i].birthTime) + ")", 90, y);
-                        text("Energy: " + nf(100*(float) (list[i].energy), 0, 2), 90, y + 25);
+                        text("Energy: " + (100*(float) (list[i].energy)).ToString(0, 2), 90, y + 25);
                     }
                 }
                 noStroke();
@@ -264,8 +263,8 @@ namespace core
                 string[] buttonTexts =
                 {
                     "Brain Control", "Maintain pop. at " + creatureMinimum,
-                    "Screenshot now", "-   Image every " + nf((float) imageSaveInterval, 0, 2) + " years   +",
-                    "Text file now", "-    Text every " + nf((float) textSaveInterval, 0, 2) + " years    +",
+                    "Screenshot now", "-   Image every " + ((float) imageSaveInterval).ToString(0, 2) + " years   +",
+                    "Text file now", "-    Text every " + ((float) textSaveInterval).ToString(0, 2) + " years    +",
                     "-    Play Speed (" + playSpeed + "x)    +", "This button does nothing"
                 };
                 if (userControl)
@@ -325,19 +324,19 @@ namespace core
                 }
                 fill(0, 0, 1);
                 text("Name: " + selectedCreature.getCreatureName(), 10, 225);
-                text("Energy: " + nf(100*(float) selectedCreature.energy, 0, 2) + " yums", 10, 250);
-                text("E Change: " + nf(100*energyUsage, 0, 2) + " yums/year", 10, 275);
+                text("Energy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums", 10, 250);
+                text("E Change: " + (100*energyUsage).ToString(0, 2) + " yums/year", 10, 275);
 
                 text("ID: " + selectedCreature.id, 10, 325);
-                text("X: " + nf((float) selectedCreature.px, 0, 2), 10, 350);
-                text("Y: " + nf((float) selectedCreature.py, 0, 2), 10, 375);
-                text("Rotation: " + nf((float) selectedCreature.rotation, 0, 2), 10, 400);
+                text("X: " + ((float) selectedCreature.px).ToString(0, 2), 10, 350);
+                text("Y: " + ((float) selectedCreature.py).ToString(0, 2), 10, 375);
+                text("Rotation: " + ((float) selectedCreature.rotation).ToString(0, 2), 10, 400);
                 text("B-day: " + toDate(selectedCreature.birthTime), 10, 425);
                 text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
                 text("Generation: " + selectedCreature.gen, 10, 475);
                 text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
-                text("Hue: " + nf((float) (selectedCreature.hue), 0, 2), 10, 550, 210, 255);
-                text("Mouth hue: " + nf((float) (selectedCreature.mouthHue), 0, 2), 10, 575, 210, 255);
+                text("Hue: " + ((float) (selectedCreature.myHue)).ToString(0, 2), 10, 550, 210, 255);
+                text("Mouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2), 10, 575, 210, 255);
 
                 if (userControl)
                 {
@@ -401,7 +400,7 @@ namespace core
             {
                 ending = ".txt";
             }
-            return folder + "/" + modes[type] + "/" + nf(fileSaveCounts[type], 5) + ending;
+            return folder + "/" + modes[type] + "/" + fileSaveCounts[type].ToString(5) + ending;
         }
 
         public void iterate(double timeStep)
@@ -456,8 +455,8 @@ namespace core
                                 if (key == ' ') me.eat(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                                 if (key == 'v') me.eat(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                                 if (key == 'f') me.fight(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (key == 'u') me.setHue(me.hue + 0.02);
-                                if (key == 'j') me.setHue(me.hue - 0.02);
+                                if (key == 'u') me.setHue(me.myHue + 0.02);
+                                if (key == 'j') me.setHue(me.myHue - 0.02);
 
                                 if (key == 'i') me.setMouthHue(me.mouthHue + 0.02);
                                 if (key == 'k') me.setMouthHue(me.mouthHue - 0.02);
@@ -495,19 +494,23 @@ namespace core
                     i--;
                 }
             }
+
             for (var i = 0; i < rocks.Count; i++)
             {
                 rocks[i].applyMotions(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
             }
+
             for (var i = 0; i < creatures.Count; i++)
             {
                 creatures[i].applyMotions(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                creatures[i].see(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                creatures[i].see();
             }
+
             if (Math.Floor(fileSaveTimes[1]/imageSaveInterval) != Math.Floor(year/imageSaveInterval))
             {
                 prepareForFileSave(1);
             }
+
             if (Math.Floor(fileSaveTimes[3]/textSaveInterval) != Math.Floor(year/textSaveInterval))
             {
                 prepareForFileSave(3);
@@ -537,7 +540,6 @@ namespace core
             var proportionFilled = (prog - min)/(max - min);
             rect(x1, y1 + h*(1 - proportionFilled), w, proportionFilled*h);
 
-
             var zeroHeight = (0 - min)/(max - min);
             var zeroLineY = y1 + h*(1 - zeroHeight);
             textAlign(AlignText.RIGHT);
@@ -553,8 +555,8 @@ namespace core
 
             fill(0, 0, 1);
             text("Zero", x1 - 5, zeroLineY + 8);
-            text(nf(MIN_TEMPERATURE, 0, 2), x1 - 5, minY + 8);
-            text(nf(MAX_TEMPERATURE, 0, 2), x1 - 5, maxY + 8);
+            text(MIN_TEMPERATURE.ToString(0, 2), x1 - 5, minY + 8);
+            text(MAX_TEMPERATURE.ToString(0, 2), x1 - 5, maxY + 8);
         }
 
         private void drawVerticalSlider(float x1, float y1, float w, float h, float prog, color fillColor, color antiColor)
@@ -616,12 +618,12 @@ namespace core
 
         private string toDate(double d)
         {
-            return "Year " + nf((float) (d), 0, 2);
+            return "Year " + ((float) (d)).ToString(0, 2);
         }
 
         private string toAge(double d)
         {
-            return nf((float) (year - d), 0, 2) + " yrs old";
+            return ((float) (year - d)).ToString(0, 2) + " yrs old";
         }
 
         private void maintainCreatureMinimum(bool choosePreexisting)
@@ -636,22 +638,22 @@ namespace core
                 }
                 else
                 {
-                    creatures.Add(new Creature(random(0, boardWidth), random(0, boardHeight), 0, 0,
-                        random(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, random(0, 1), 1, 1,
-                        this, year, random(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1, random(0, 1)));
+                    creatures.Add(new Creature(Rnd.Next(0, boardWidth), Rnd.Next(0, boardHeight), 0, 0,
+                        Rnd.Next(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, Rnd.Next(0, 1), 1, 1,
+                        this, year, Rnd.Next(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1, Rnd.Next(0, 1)));
                 }
             }
         }
 
         private Creature getRandomCreature()
         {
-            var index = random(0, creatures.Count);
+            var index = Rnd.Next(0, creatures.Count);
             return creatures[index];
         }
 
         private double getRandomSize()
         {
-            return pow(random(MIN_ROCK_ENERGY_BASE, MAX_ROCK_ENERGY_BASE), 4);
+            return Math.Pow(Rnd.Next(MIN_ROCK_ENERGY_BASE, MAX_ROCK_ENERGY_BASE), 4);
         }
 
         private void drawCreature(Creature c, float x, float y, float scale, float scaleUp)
@@ -700,14 +702,5 @@ namespace core
         {
             selectedCreature = null;
         }
-    }
-
-    public class Key
-    {
-        public const int RIGHT = 1;
-        public const int LEFT = 1;
-        public const int UP = 1;
-        public const int DOWN = 1;
-        public const int CODED = 1;
     }
 }
