@@ -1,4 +1,7 @@
-public class EllipseMode
+namespace core
 {
-    public const int RADIUS = 1;
+    public class EllipseMode
+    {
+        public const int RADIUS = 1;
+    }
 }

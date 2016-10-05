@@ -48,6 +48,8 @@
   <ItemGroup>
     <Compile Include="Axon.cs" />
     <Compile Include="Board.cs" />
+    <Compile Include="color.cs" />
+    <Compile Include="ColorMode.cs" />
     <Compile Include="Creature.cs" />
     <Compile Include="EllipseMode.cs" />
     <Compile Include="EvolvioColor.cs" />
@@ -59,10 +61,13 @@
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
     <Compile Include="Misc.cs" />
+    <Compile Include="MouseEvent.cs" />
+    <Compile Include="PFont.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SoftBody.cs" />
     <Compile Include="Tile.cs" />
+    <Compile Include="AlignText.cs" />
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>

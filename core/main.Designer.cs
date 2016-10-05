@@ -1,11 +1,13 @@
-﻿namespace core
+﻿using System.ComponentModel;
+
+namespace core
 {
     partial class Main
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.

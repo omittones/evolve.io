@@ -1,34 +1,37 @@
 using System;
 
-public class Axon : Helpers
+namespace core
 {
-    private readonly double MUTABILITY_MUTABILITY = 0.7;
-    private readonly int mutatePower = 9;
-    private readonly double MUTATE_MULTI;
-
-    public double weight;
-    public double mutability;
-
-    public Axon(double w, double m)
+    public class Axon : Helpers
     {
-        weight = w;
-        mutability = m;
-        MUTATE_MULTI = Math.Pow(0.5, mutatePower);
-    }
+        private readonly double MUTABILITY_MUTABILITY = 0.7;
+        private readonly int mutatePower = 9;
+        private readonly double MUTATE_MULTI;
 
-    public Axon mutateAxon()
-    {
-        double mutabilityMutate = Math.Pow(0.5, pmRan()*MUTABILITY_MUTABILITY);
-        return new Axon(weight + r()*mutability/MUTATE_MULTI, mutability*mutabilityMutate);
-    }
+        public double weight;
+        public double mutability;
 
-    public double r()
-    {
-        return Math.Pow(pmRan(), mutatePower);
-    }
+        public Axon(double w, double m)
+        {
+            weight = w;
+            mutability = m;
+            MUTATE_MULTI = Math.Pow(0.5, mutatePower);
+        }
 
-    public double pmRan()
-    {
-        return (random()*2 - 1);
+        public Axon mutateAxon()
+        {
+            var mutabilityMutate = Math.Pow(0.5, pmRan()*MUTABILITY_MUTABILITY);
+            return new Axon(weight + r()*mutability/MUTATE_MULTI, mutability*mutabilityMutate);
+        }
+
+        public double r()
+        {
+            return Math.Pow(pmRan(), mutatePower);
+        }
+
+        public double pmRan()
+        {
+            return (random()*2 - 1);
+        }
     }
 }
