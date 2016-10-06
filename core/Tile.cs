@@ -1,3 +1,5 @@
+using System;
+
 namespace core
 {
     public class Tile : Helpers
@@ -21,8 +23,8 @@ namespace core
         {
             posX = x;
             posY = y;
-            fertility = max(0, f);
-            foodLevel = max(0, food);
+            fertility = Math.Max(0, f);
+            foodLevel = Math.Max(0, food);
             climateType = foodType = type;
         }
 
@@ -93,7 +95,7 @@ namespace core
                     foodLevel += (float) (maxGrowthLevel*foodLevel*FOOD_GROWTH_RATE*timeStep*growableTime);
                 }
             }
-            foodLevel = max(foodLevel, 0);
+            foodLevel = Math.Max(foodLevel, 0);
         }
 
         public void addFood(float amount, float addedFoodType)

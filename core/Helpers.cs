@@ -1,155 +1,149 @@
+using System;
+
 namespace core
 {
     public class Helpers
     {
-        public bool keyPressed;
-        public int keyCode;
-        public char key;
-        public int mouseX;
-        public int mouseY;
+        protected bool keyPressed;
+        protected int keyCode;
+        protected char key;
+        protected int mouseX;
+        protected int mouseY;
 
-        public void scale(float scale) { }
-        public void rotate(float rotate) { }
+        protected void scale(float scale) { }
+        protected void rotate(float rotate) { }
 
-        public void noFill() { }
+        protected void noFill() { }
 
 
-        public float width;
-        public float height;
+        protected float screenWidth;
+        protected float screenHeight;
 
-        public void size(int width, int height)
+        protected void size(int width, int height)
         {
         }
 
-        public void colorMode(ColorMode mode, float gamma) { }
+        protected void colorMode(ColorMode mode, float gamma) { }
 
-        public PFont loadFont(string font)
+        protected PFont loadFont(string font)
         {
             return null;
         }
 
-        public void saveFrame(string filename)
+        protected void saveFrame(string filename)
         {
         }
 
-        public void saveStrings(string filename,  string[] data)
+        protected void saveStrings(string filename,  string[] data)
         {
         }
 
-        public void popMatrix() { }
+        protected void popMatrix() { }
 
-        public void pushMatrix() { }
+        protected void pushMatrix() { }
 
-        public float dist(params float[] dists)
+        protected float dist(float x1, float y1, float x2, float y2)
         {
-            return 0;
+            var x = x2 - x1;
+            var y = y2 - y1;
+            return (float) Math.Sqrt(x*x + y*y);
         }
 
-        public void noStroke()
-        {
-        }
-
-        public void ellipseMode(int mode)
-        {
-
-        }
-
-        public void ellipse(float a, float b, float c = 0, float d = 0)
+        protected void noStroke()
         {
         }
 
-        public void translate(float x, float y)
+        protected void ellipseMode(int mode)
+        {
+
+        }
+
+        protected void ellipse(float a, float b, float c = 0, float d = 0)
         {
         }
 
-        public static color color(double a, double b, double c, double alpha = 1)
+        protected void translate(float x, float y)
+        {
+        }
+
+        protected static color color(double a, double b, double c, double alpha = 1)
         {
             return new color();
         }
 
-        public float max(float a, float b)
+        protected void stroke(int color)
+        {
+        }
+
+        protected void stroke(color color)
+        {
+        }
+
+        protected void line(double a, double b, double c, double d)
+        {
+        }
+
+        protected void stroke(float a, float b, float c, float d = 1.0f)
+        {
+        }
+
+        protected void strokeWeight(float weight)
+        {
+        }
+
+        protected void fill(color color)
+        {
+
+        }
+
+        protected void fill(float a, float b, float c)
+        {
+
+        }
+
+        protected void fill(float a, float b, float c, float d)
+        {
+
+        }
+
+        protected void rect(float a, float b, float c, float d)
+        {
+
+        }
+
+        protected float hue(color clr)
         {
             return 0;
         }
 
-        public float min(float a, float b)
+        protected float brightness(color clr)
         {
             return 0;
         }
 
-        public void stroke(int color)
-        {
-        }
-
-        public void stroke(color color)
-        {
-        }
-
-        public void line(double a, double b, double c, double d)
-        {
-        }
-
-        public void stroke(float a, float b, float c, float d = 1.0f)
-        {
-        }
-
-        public void strokeWeight(float weight)
-        {
-        }
-
-        public void fill(color color)
-        {
-
-        }
-
-        public void fill(float a, float b, float c)
-        {
-
-        }
-
-        public void fill(float a, float b, float c, float d)
-        {
-
-        }
-
-        public void rect(float a, float b, float c, float d)
-        {
-
-        }
-
-        public float hue(color clr)
+        protected float saturation(color clr)
         {
             return 0;
         }
 
-        public float brightness(color clr)
+        protected void textAlign(AlignText where)
+        {
+
+        }
+
+        protected void text(params object[] items)
+        {
+
+        }
+
+        protected float textWidth(string width)
         {
             return 0;
         }
 
-        public float saturation(color clr)
-        {
-            return 0;
-        }
+        protected PFont font;
 
-        public void textAlign(AlignText where)
-        {
-
-        }
-
-        public void text(params object[] items)
-        {
-
-        }
-
-        public float textWidth(string width)
-        {
-            return 0;
-        }
-
-        public PFont font;
-
-        public void textFont(PFont font, float size)
+        protected void textFont(PFont font, float size)
         {
 
         }

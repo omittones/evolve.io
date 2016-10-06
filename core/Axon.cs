@@ -30,7 +30,7 @@ namespace core
 
         private double pmRan()
         {
-            return (Rnd.Next()*2 - 1);
+            return (Rnd.next()*2 - 1);
         }
     }
 }

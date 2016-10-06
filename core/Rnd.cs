@@ -1,32 +1,43 @@
+using System;
+
 namespace core
 {
-    public class Rnd
+    public static class Rnd
     {
-        public static float Next(double min, double max)
+        private static Random randomGenerator;
+        private static Random noiseGenerator;
+
+        static Rnd()
         {
-            return 0;
+            randomGenerator = new Random();
         }
 
-        public static int Next(int min, int max)
+        public static float next(double min, double max)
         {
-            return 0;
+            return (float) (randomGenerator.NextDouble()*(max - min) + min);
         }
 
-        public static int Next()
+        public static int next(int min, int max)
         {
-            return 0;
+            return randomGenerator.Next(min, max);
+        }
+
+        public static float next()
+        {
+            return (float) randomGenerator.NextDouble();
         }
 
         public static void randomSeed(int seed)
         {
+            randomGenerator = new Random(seed);
         }
 
-        public static float noise(float a, float b)
+        public static float noise(float x, float y)
         {
             return 0;
         }
 
-        public static float noise(double a, double b)
+        public static float noise(double x, double y)
         {
             return 0;
         }

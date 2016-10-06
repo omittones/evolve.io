@@ -75,7 +75,7 @@ namespace core
                             (Rnd.noise(x*stepSize*3, y*stepSize*3)*(1 - bigForce)*5.0 +
                              Rnd.noise(x*stepSize*0.5, y*stepSize*0.5)*bigForce*5.0 - 1.5);
                     var climateType = (float) (Rnd.noise(x*stepSize + 10000, y*stepSize + 10000)*1.63 - 0.4);
-                    climateType = min(max(climateType, 0), 0.8f);
+                    climateType = Math.Min(Math.Max(climateType, 0), 0.8f);
                     tiles[x, y] = new Tile(x, y, fertility, 0, climateType);
                 }
             }
@@ -95,7 +95,7 @@ namespace core
             rocks = new List<SoftBody>(0);
             for (var i = 0; i < ROCKS_TO_ADD; i++)
             {
-                rocks.Add(new SoftBody(Rnd.Next(0, boardWidth), Rnd.Next(0, boardHeight), 0, 0,
+                rocks.Add(new SoftBody(Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
                     getRandomSize(), ROCK_DENSITY, hue(ROCK_COLOR), saturation(ROCK_COLOR), brightness(ROCK_COLOR), this,
                     year));
             }
@@ -312,7 +312,7 @@ namespace core
                     fill(0.33f, 1, 0.4f);
                 }
                 var EUbar = 6*energyUsage;
-                rect(110, 280, min(max(EUbar, -110), 110), 25);
+                rect(110, 280, Math.Min(Math.Max(EUbar, -110), 110), 25);
                 if (EUbar < -110)
                 {
                     rect(0, 280, 25, (-110 - EUbar)*20 + 25);
@@ -603,7 +603,7 @@ namespace core
 
         private float tempBounds(float temp)
         {
-            return min(max(temp, THERMOMETER_MIN), THERMOMETER_MAX);
+            return Math.Min(Math.Max(temp, THERMOMETER_MIN), THERMOMETER_MAX);
         }
 
         public float getHighTempProportion()
@@ -638,22 +638,22 @@ namespace core
                 }
                 else
                 {
-                    creatures.Add(new Creature(Rnd.Next(0, boardWidth), Rnd.Next(0, boardHeight), 0, 0,
-                        Rnd.Next(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, Rnd.Next(0, 1), 1, 1,
-                        this, year, Rnd.Next(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1, Rnd.Next(0, 1)));
+                    creatures.Add(new Creature(Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
+                        Rnd.next(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, Rnd.next(0, 1), 1, 1,
+                        this, year, Rnd.next(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1, Rnd.next(0, 1)));
                 }
             }
         }
 
         private Creature getRandomCreature()
         {
-            var index = Rnd.Next(0, creatures.Count);
+            var index = Rnd.next(0, creatures.Count);
             return creatures[index];
         }
 
         private double getRandomSize()
         {
-            return Math.Pow(Rnd.Next(MIN_ROCK_ENERGY_BASE, MAX_ROCK_ENERGY_BASE), 4);
+            return Math.Pow(Rnd.next(MIN_ROCK_ENERGY_BASE, MAX_ROCK_ENERGY_BASE), 4);
         }
 
         private void drawCreature(Creature c, float x, float y, float scale, float scaleUp)

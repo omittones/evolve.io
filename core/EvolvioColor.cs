@@ -229,7 +229,7 @@ namespace core
                         }
                     }
                 }
-                else if (mouseX >= height + 10 && mouseX < width - 50 && evoBoard.selectedCreature == null)
+                else if (mouseX >= screenHeight + 10 && mouseX < screenWidth - 50 && evoBoard.selectedCreature == null)
                 {
                     var listIndex = (mouseY - 150)/70;
                     if (listIndex >= 0 && listIndex < Board.LIST_SLOTS)
@@ -240,7 +240,7 @@ namespace core
                         zoom = 4;
                     }
                 }
-                if (mouseX >= width - 50)
+                if (mouseX >= screenWidth - 50)
                 {
                     var toClickTemp = (mouseY - 30)/660.0f;
                     var lowTemp = 1.0f - evoBoard.getLowTempProportion();

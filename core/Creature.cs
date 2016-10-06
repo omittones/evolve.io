@@ -67,7 +67,7 @@ namespace core
                             double startingWeight = 0;
                             if (y == BRAIN_HEIGHT - 1)
                             {
-                                startingWeight = (Rnd.Next()*2 - 1)*STARTING_AXON_VARIABILITY;
+                                startingWeight = (Rnd.next()*2 - 1)*STARTING_AXON_VARIABILITY;
                             }
                             axons[x, y, z] = new Axon(startingWeight, AXON_START_MUTABILITY);
                         }
@@ -379,8 +379,8 @@ namespace core
             double choiceY = 0;
             while (dist((float) px, (float) py, (float) choiceX, (float) choiceY) > radius)
             {
-                choiceX = (Rnd.Next()*2*radius - radius) + px;
-                choiceY = (Rnd.Next()*2*radius - radius) + py;
+                choiceX = (Rnd.next()*2*radius - radius) + px;
+                choiceY = (Rnd.next()*2*radius - radius) + py;
             }
             var x = xBound((int) choiceX);
             var y = yBound((int) choiceY);
@@ -611,8 +611,8 @@ namespace core
                 }
                 if (availableEnergy > babySize)
                 {
-                    double newPX = Rnd.Next(-0.01, 0.01);
-                    double newPY = Rnd.Next(-0.01, 0.01); //To avoid landing directly on parents, resulting in division by 0)
+                    double newPX = Rnd.next(-0.01, 0.01);
+                    double newPY = Rnd.next(-0.01, 0.01); //To avoid landing directly on parents, resulting in division by 0)
                     double newHue = 0;
                     double newSaturation = 0;
                     double newBrightness = 0;
@@ -621,7 +621,7 @@ namespace core
                     var parentNames = new string[parentsTotal];
                     var newBrain = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT - 1];
                     var newNeurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
-                    float randomParentRotation = Rnd.Next(0, 1);
+                    float randomParentRotation = Rnd.next(0, 1);
                     for (var x = 0; x < BRAIN_WIDTH - 1; x++)
                     {
                         for (var y = 0; y < BRAIN_HEIGHT; y++)
@@ -649,7 +649,7 @@ namespace core
                     }
                     for (var i = 0; i < parentsTotal; i++)
                     {
-                        var chosenIndex = Rnd.Next(0, parents.Count);
+                        var chosenIndex = Rnd.next(0, parents.Count);
                         var parent = parents[(chosenIndex)];
                         parents.RemoveAt(chosenIndex);
                         parent.energy -= babySize*(parent.getBabyEnergy()/availableEnergy);
@@ -668,7 +668,7 @@ namespace core
                     newSaturation = 1;
                     newBrightness = 1;
                     board.creatures.Add(new Creature(newPX, newPY, 0, 0,
-                        babySize, density, newHue, newSaturation, newBrightness, board, board.year, Rnd.Next(0, 2*Math.PI), 0,
+                        babySize, density, newHue, newSaturation, newBrightness, board, board.year, Rnd.next(0, 2*Math.PI), 0,
                         stitchName(parentNames), andifyParents(parentNames), true,
                         newBrain, newNeurons, highestGen + 1, newMouthHue));
                 }
@@ -681,8 +681,8 @@ namespace core
             for (var i = 0; i < parts.Length; i++)
             {
                 var portion = ((float) parts[i].Length)/parts.Length;
-                var start = (int) min(max((float) Math.Round(portion*i), 0), parts[i].Length);
-                var end = (int) min(max((float) Math.Round(portion*(i + 1)), 0), parts[i].Length);
+                var start = (int) Math.Min(Math.Max((float) Math.Round(portion*i), 0), parts[i].Length);
+                var end = (int) Math.Min(Math.Max((float) Math.Round(portion*(i + 1)), 0), parts[i].Length);
                 result = result + parts[i].Substring(start, end);
             }
             return result;
@@ -705,7 +705,7 @@ namespace core
         public string createNewName()
         {
             var nameSoFar = "";
-            var chosenLength = Rnd.Next(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
+            var chosenLength = Rnd.next(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
             for (var i = 0; i < chosenLength; i++)
             {
                 nameSoFar += getRandomChar();
@@ -715,7 +715,7 @@ namespace core
 
         public char getRandomChar()
         {
-            float letterFactor = Rnd.Next(0, 100);
+            float letterFactor = Rnd.next(0, 100);
             var letterChoice = 0;
             while (letterFactor > 0)
             {
@@ -758,7 +758,7 @@ namespace core
                     {
                         chanceOfAddingChar = 0.0;
                     }
-                    if (Rnd.Next(0, 1) < chanceOfAddingChar)
+                    if (Rnd.next(0, 1) < chanceOfAddingChar)
                     {
                         var extraChar = ' ';
                         while (extraChar == ' ' || (isVowel(ch) == isVowel(extraChar)))
@@ -801,21 +801,21 @@ namespace core
         {
             if (input.Length >= 3)
             {
-                if (Rnd.Next(0, 1) < 0.2)
+                if (Rnd.next(0, 1) < 0.2)
                 {
-                    var removeIndex = Rnd.Next(0, input.Length);
+                    var removeIndex = Rnd.next(0, input.Length);
                     input = input.Substring(0, removeIndex) + input.Substring(removeIndex + 1, input.Length);
                 }
             }
             if (input.Length <= 9)
             {
-                if (Rnd.Next(0, 1) < 0.2)
+                if (Rnd.next(0, 1) < 0.2)
                 {
-                    var insertIndex = Rnd.Next(0, input.Length + 1);
+                    var insertIndex = Rnd.next(0, input.Length + 1);
                     input = input.Substring(0, insertIndex) + getRandomChar() + input.Substring(insertIndex, input.Length);
                 }
             }
-            var changeIndex = Rnd.Next(0, input.Length);
+            var changeIndex = Rnd.next(0, input.Length);
             input = input.Substring(0, changeIndex) + getRandomChar() + input.Substring(changeIndex + 1, input.Length);
             return input;
         }
