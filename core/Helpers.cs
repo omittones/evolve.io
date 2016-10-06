@@ -9,21 +9,20 @@ namespace core
         protected char key;
         protected int mouseX;
         protected int mouseY;
-
-        protected void scale(float scale) { }
-        protected void rotate(float rotate) { }
-
-        protected void noFill() { }
-
-
         protected float screenWidth;
         protected float screenHeight;
+
+        protected void noFill()
+        {
+        }
 
         protected void size(int width, int height)
         {
         }
 
-        protected void colorMode(ColorMode mode, float gamma) { }
+        protected void colorMode(ColorMode mode, float gamma)
+        {
+        }
 
         protected PFont loadFont(string font)
         {
@@ -38,17 +37,28 @@ namespace core
         {
         }
 
-        protected void popMatrix() { }
-
-        protected void pushMatrix() { }
-
-        protected float dist(float x1, float y1, float x2, float y2)
+        protected void translate(float x, float y)
         {
-            var x = x2 - x1;
-            var y = y2 - y1;
-            return (float) Math.Sqrt(x*x + y*y);
         }
 
+        protected void scale(float scale)
+        {
+        }
+
+        protected void rotate(float rotate)
+        {
+        }
+
+        protected void popMatrix()
+        {
+
+        }
+
+        protected void pushMatrix()
+        {
+
+        }
+        
         protected void noStroke()
         {
         }
@@ -61,11 +71,7 @@ namespace core
         protected void ellipse(float a, float b, float c = 0, float d = 0)
         {
         }
-
-        protected void translate(float x, float y)
-        {
-        }
-
+        
         protected static color color(double a, double b, double c, double alpha = 1)
         {
             return new color();
@@ -131,9 +137,12 @@ namespace core
 
         }
 
-        protected void text(params object[] items)
+        protected void text(string text, float x, float y)
         {
+        }
 
+        protected void text(string text, float x1, float y1, float x2, float y2)
+        {
         }
 
         protected float textWidth(string width)

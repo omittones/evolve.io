@@ -137,7 +137,7 @@ namespace core
             for (var i = 0; i < colliders.Count; i++)
             {
                 var collider = colliders[i];
-                var distance = dist((float) px, (float) py, (float) collider.px, (float) collider.py);
+                var distance = MathF.Distance((float) px, (float) py, (float) collider.px, (float) collider.py);
                 var combinedRadius = getRadius() + collider.getRadius();
                 if (distance < combinedRadius)
                 {

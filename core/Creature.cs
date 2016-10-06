@@ -158,9 +158,9 @@ namespace core
             for (var y = 0; y < BRAIN_HEIGHT; y++)
             {
                 textAlign(AlignText.RIGHT);
-                text(inputLabels[y], (-neuronSize - 0.1)*scaleUp, (y + (neuronSize*0.6))*scaleUp);
+                text(inputLabels[y], (-neuronSize - 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
                 textAlign(AlignText.LEFT);
-                text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1)*scaleUp, (y + (neuronSize*0.6))*scaleUp);
+                text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
             }
             textAlign(AlignText.CENTER);
             for (var x = 0; x < BRAIN_WIDTH; x++)
@@ -172,7 +172,7 @@ namespace core
                     fill(neuronFillColor(val));
                     ellipse(x*scaleUp, y*scaleUp, neuronSize*scaleUp, neuronSize*scaleUp);
                     fill(neuronTextColor(val));
-                    text(((float) val).ToString(0, 1), x*scaleUp, (y + (neuronSize*0.6))*scaleUp);
+                    text(((float) val).ToString(0, 1), x*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
                 }
             }
             if (mX >= 0 && mX < BRAIN_WIDTH && mY >= 0 && mY < BRAIN_HEIGHT)
@@ -377,7 +377,7 @@ namespace core
             double radius = (float) getRadius();
             double choiceX = 0;
             double choiceY = 0;
-            while (dist((float) px, (float) py, (float) choiceX, (float) choiceY) > radius)
+            while (MathF.Distance((float) px, (float) py, (float) choiceX, (float) choiceY) > radius)
             {
                 choiceX = (Rnd.next()*2*radius - radius) + px;
                 choiceY = (Rnd.next()*2*radius - radius) + py;
@@ -431,7 +431,7 @@ namespace core
                     var collider = colliders[i];
                     if (collider.isCreature)
                     {
-                        var distance = dist((float) px, (float) py, (float) collider.px, (float) collider.py);
+                        var distance = MathF.Distance((float) px, (float) py, (float) collider.px, (float) collider.py);
                         var combinedRadius = getRadius()*FIGHT_RANGE + collider.getRadius();
                         if (distance < combinedRadius)
                         {
@@ -600,7 +600,7 @@ namespace core
                     if (possibleParent.isCreature && ((Creature) possibleParent).neurons[BRAIN_WIDTH - 1, 9] > -1)
                     {
                         // Must be a WILLING creature to also give birth.
-                        var distance = dist((float) px, (float) py, (float) possibleParent.px, (float) possibleParent.py);
+                        var distance = MathF.Distance((float) px, (float) py, (float) possibleParent.px, (float) possibleParent.py);
                         var combinedRadius = getRadius()*FIGHT_RANGE + possibleParent.getRadius();
                         if (distance < combinedRadius)
                         {
@@ -683,7 +683,7 @@ namespace core
                 var portion = ((float) parts[i].Length)/parts.Length;
                 var start = (int) Math.Min(Math.Max((float) Math.Round(portion*i), 0), parts[i].Length);
                 var end = (int) Math.Min(Math.Max((float) Math.Round(portion*(i + 1)), 0), parts[i].Length);
-                result = result + parts[i].Substring(start, end);
+                result = result + parts[i].Substr(start, end);
             }
             return result;
         }
@@ -789,7 +789,7 @@ namespace core
 
         public string capitalize(string n)
         {
-            return n.Substring(0, 1).ToUpper() + n.Substring(1, n.Length);
+            return n.Substr(0, 1).ToUpper() + n.Substr(1, n.Length);
         }
 
         public bool isVowel(char a)
@@ -804,7 +804,7 @@ namespace core
                 if (Rnd.next(0, 1) < 0.2)
                 {
                     var removeIndex = Rnd.next(0, input.Length);
-                    input = input.Substring(0, removeIndex) + input.Substring(removeIndex + 1, input.Length);
+                    input = input.Substr(0, removeIndex) + input.Substr(removeIndex + 1, input.Length);
                 }
             }
             if (input.Length <= 9)
@@ -812,11 +812,11 @@ namespace core
                 if (Rnd.next(0, 1) < 0.2)
                 {
                     var insertIndex = Rnd.next(0, input.Length + 1);
-                    input = input.Substring(0, insertIndex) + getRandomChar() + input.Substring(insertIndex, input.Length);
+                    input = input.Substr(0, insertIndex) + getRandomChar() + input.Substr(insertIndex, input.Length);
                 }
             }
             var changeIndex = Rnd.next(0, input.Length);
-            input = input.Substring(0, changeIndex) + getRandomChar() + input.Substring(changeIndex + 1, input.Length);
+            input = input.Substr(0, changeIndex) + getRandomChar() + input.Substr(changeIndex + 1, input.Length);
             return input;
         }
 

@@ -4,48 +4,30 @@ namespace core
 {
     public class Tile : Helpers
     {
+        public const float FOOD_GROWTH_RATE = 1.0f;
+
         public readonly color barrenColor = color(0, 0, 1);
         public readonly color fertileColor = color(0, 0, 0.2);
         public readonly color blackColor = color(0, 1, 0);
         public readonly color waterColor = color(0, 0, 0);
-        public readonly float FOOD_GROWTH_RATE = 1.0f;
-
-        public float fertility;
-        public float foodLevel;
+        
+        public readonly float fertility;
         private readonly float maxGrowthLevel = 1.0f;
-        private int posX;
-        private int posY;
+        private readonly int posX;
+        private readonly int posY;
 
-        public float climateType;
+        private readonly float climateType;
         public float foodType;
+        public float foodLevel;
 
-        public Tile(int x, int y, float f, float food, float type)
+        public Tile(int x, int y, float maxFertility, float maxFood, float foodType)
         {
-            posX = x;
-            posY = y;
-            fertility = Math.Max(0, f);
-            foodLevel = Math.Max(0, food);
-            climateType = foodType = type;
-        }
-
-        public float getFertility()
-        {
-            return fertility;
-        }
-
-        public float getFoodLevel()
-        {
-            return foodLevel;
-        }
-
-        public void setFertility(float f)
-        {
-            fertility = f;
-        }
-
-        public void setFoodLevel(float f)
-        {
-            foodLevel = f;
+            this.posX = x;
+            this.posY = y;
+            this.fertility = Math.Max(0, maxFertility);
+            this.foodLevel = Math.Max(0, maxFood);
+            this.climateType = foodType;
+            this.foodType = foodType;
         }
 
         public void drawTile(float scaleUp, bool showEnergy)
@@ -67,9 +49,9 @@ namespace core
                 }
                 textAlign(AlignText.CENTER);
                 textFont(font, 21);
-                text((100*foodLevel).ToString(0, 2) + " yums", (posX + 0.5)*scaleUp, (posY + 0.3)*scaleUp);
-                text("Clim: " + climateType.ToString(0, 2), (posX + 0.5)*scaleUp, (posY + 0.6)*scaleUp);
-                text("Food: " + foodType.ToString(0, 2), (posX + 0.5)*scaleUp, (posY + 0.9)*scaleUp);
+                text((100*foodLevel).ToString(0, 2) + " yums", (posX + 0.5f)*scaleUp, (posY + 0.3f)*scaleUp);
+                text("Clim: " + climateType.ToString(0, 2), (posX + 0.5f)*scaleUp, (posY + 0.6f)*scaleUp);
+                text("Food: " + foodType.ToString(0, 2), (posX + 0.5f)*scaleUp, (posY + 0.9f)*scaleUp);
             }
         }
 

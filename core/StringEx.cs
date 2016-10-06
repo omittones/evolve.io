@@ -12,5 +12,12 @@ namespace core
         {
             return num.ToString().PadLeft(trail);
         }
+
+        public static string Substr(this string value, int start, int end)
+        {
+            if (end >= value.Length)
+                end = value.Length - 1;
+            return value.Substring(start, end - start + 1);
+        }
     }
 }

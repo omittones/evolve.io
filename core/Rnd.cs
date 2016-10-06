@@ -5,7 +5,6 @@ namespace core
     public static class Rnd
     {
         private static Random randomGenerator;
-        private static Random noiseGenerator;
 
         static Rnd()
         {
@@ -34,12 +33,12 @@ namespace core
 
         public static float noise(float x, float y)
         {
-            return 0;
+            return Perlin.Noise(x, y);
         }
 
         public static float noise(double x, double y)
         {
-            return 0;
+            return Perlin.Noise((float) x, (float) y);
         }
 
         public static void noiseSeed(int seed)

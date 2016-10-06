@@ -46,7 +46,7 @@ namespace core
             {
                 evoBoard.iterate(TIME_STEP);
             }
-            if (dist(prevMouseX, prevMouseY, mouseX, mouseY) > 5)
+            if (MathF.Distance(prevMouseX, prevMouseY, mouseX, mouseY) > 5)
             {
                 draggedFar = true;
             }
@@ -279,7 +279,7 @@ namespace core
                             var body = evoBoard.softBodiesInPositions[x, y][i];
                             if (body.isCreature)
                             {
-                                var distance = dist(mX, mY, (float) body.px, (float) body.py);
+                                var distance = MathF.Distance(mX, mY, (float) body.px, (float) body.py);
                                 if (distance <= body.getRadius())
                                 {
                                     evoBoard.selectedCreature = (Creature) body;
@@ -316,17 +316,17 @@ namespace core
 
         private float toWorldXCoordinate(float x, float y)
         {
-            float w = WINDOW_HEIGHT/2;
+            var w = WINDOW_HEIGHT/2.0f;
             var angle = (float) Math.Atan2(y - w, x - w);
-            var dist2 = dist(w, w, x, y);
+            var dist2 = MathF.Distance(w, w, x, y);
             return cameraX + grossify((float) Math.Cos(angle - cameraR)*dist2 + w, BOARD_WIDTH)/zoom;
         }
 
         private float toWorldYCoordinate(float x, float y)
         {
-            float w = WINDOW_HEIGHT/2;
+            var w = WINDOW_HEIGHT/2.0f;
             var angle = (float) Math.Atan2(y - w, x - w);
-            var dist2 = dist(w, w, x, y);
+            var dist2 = MathF.Distance(w, w, x, y);
             return cameraY + grossify((float) Math.Sin(angle - cameraR)*dist2 + w, BOARD_HEIGHT)/zoom;
         }
     }

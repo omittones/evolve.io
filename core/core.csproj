@@ -61,8 +61,10 @@
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="Mathf.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="MouseEvent.cs" />
+    <Compile Include="Perlin.cs" />
     <Compile Include="PFont.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
