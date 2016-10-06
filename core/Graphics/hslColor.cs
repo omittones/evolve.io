@@ -1,7 +1,6 @@
-using System;
 using System.Drawing;
 
-namespace core
+namespace core.Graphics
 {
     public class hslColor
     {
@@ -11,7 +10,7 @@ namespace core
         private double saturation = 1.0;
         private double luminosity = 1.0;
 
-        private const double scale = 240.0;
+        private const double scale = 1.0;
 
         public double Hue
         {
@@ -52,8 +51,6 @@ namespace core
             var color = (Color) this;
             return $"R: {color.R:#0.##} G: {color.G:#0.##} B: {color.B:#0.##}";
         }
-
-        #region Casts to/from System.Drawing.Color
 
         public static implicit operator Color(hslColor hslColor)
         {
@@ -116,8 +113,6 @@ namespace core
             hslColor.Alpha = color.A/255.0;
             return hslColor;
         }
-
-        #endregion
 
         public void SetRGB(int red, int green, int blue)
         {

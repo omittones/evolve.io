@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using core.Graphics;
 
 namespace core
 {
@@ -20,31 +21,19 @@ namespace core
         public double year;
         public double[] fileSaveTimes;
 
-        public double[] letterFrequencies =
+        public readonly double[] letterFrequencies =
         {
             8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153, 0.772,
             4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758, 0.978, 2.361, 0.150, 1.974, 10000.0
         };
 
-        public float MAX_TEMPERATURE;
-        public float MIN_TEMPERATURE;
-        public float temperature;
-        public int creatureRankMetric = 0;
-        public int playSpeed = 1;
-        public int POPULATION_HISTORY_LENGTH = 200;
-        public int[] fileSaveCounts;
-        public int[] populationHistory;
-        public List<Creature> creatures;
-        public List<SoftBody> rocks;
-        public int boardHeight;
+        private float maxTemperature;
+        private float minTemperature;
+        private float temperature;
         private readonly GraphicsEngine graphics;
-        public int boardWidth;
-        public int creatureIDUpTo = 0;
-        public int creatureMinimum;
-        public List<SoftBody>[,] softBodiesInPositions;
-        public readonly hslColor BACKGROUND_COLOR = new hslColor(0, 0, 0.1f);
-        public readonly hslColor ROCK_COLOR = new hslColor(0, 0, 0.5f);
-        public readonly double FLASH_SPEED = 80;
+        private readonly int[] fileSaveCounts;
+        private readonly int[] populationHistory;
+        private readonly List<SoftBody> rocks;
         public const float MAX_CREATURE_ENERGY = 2.0f;
         public const float MAX_ROCK_ENERGY_BASE = 1.6f;
         public const float MIN_CREATURE_ENERGY = 1.2f;
@@ -54,10 +43,21 @@ namespace core
         public const float ROCK_DENSITY = 5;
         public const float THERMOMETER_MAX = 2;
         public const float THERMOMETER_MIN = -2;
+        public const int POPULATION_HISTORY_LENGTH = 200;
+        public int creatureIDUpTo = 0;
+        public int creatureMinimum;
+        public int creatureRankMetric = 0;
+        public int playSpeed = 1;
+        public readonly double FLASH_SPEED = 80;
+        public readonly hslColor BACKGROUND_COLOR = new hslColor(0, 0, 0.1f);
+        public readonly hslColor ROCK_COLOR = new hslColor(0, 0, 0.5f);
+        public readonly int boardHeight;
+        public readonly int boardWidth;
         public readonly int creatureMinimumIncrement = 5;
-        public readonly int ROCKS_TO_ADD;
+        public readonly List<Creature> creatures;
+        public readonly List<SoftBody>[,] softBodiesInPositions;
+        public readonly Tile[,] tiles;
         public string folder = "TEST";
-        public Tile[,] tiles;
 
         public Board(
             GraphicsEngine graphics,
@@ -77,17 +77,16 @@ namespace core
                 for (var y = 0; y < boardHeight; y++)
                 {
                     var bigForce = Math.Pow(((float) y)/boardHeight, 0.5);
-                    var fertility =
-                        (float)
-                            (Rnd.noise(x*stepSize*3, y*stepSize*3)*(1 - bigForce)*5.0 +
-                             Rnd.noise(x*stepSize*0.5, y*stepSize*0.5)*bigForce*5.0 - 1.5);
+                    var fertility = (float)
+                        (Rnd.noise(x*stepSize*3, y*stepSize*3)*(1 - bigForce)*5.0 +
+                         Rnd.noise(x*stepSize*0.5, y*stepSize*0.5)*bigForce*5.0 - 1.5);
                     var climateType = (float) (Rnd.noise(x*stepSize + 10000, y*stepSize + 10000)*1.63 - 0.4);
                     climateType = Math.Min(Math.Max(climateType, 0), 0.8f);
-                    tiles[x, y] = new Tile(this.graphics, x, y, fertility, 0, climateType);
+                    tiles[x, y] = new Tile(x, y, fertility, 0, climateType);
                 }
             }
-            MIN_TEMPERATURE = minTemp;
-            MAX_TEMPERATURE = maxTemp;
+            minTemperature = minTemp;
+            maxTemperature = maxTemp;
 
             softBodiesInPositions = new List<SoftBody>[boardWidth, boardHeight];
             for (var x = 0; x < boardWidth; x++)
@@ -98,12 +97,11 @@ namespace core
                 }
             }
 
-            ROCKS_TO_ADD = rocksToAdd;
             rocks = new List<SoftBody>(0);
-            for (var i = 0; i < ROCKS_TO_ADD; i++)
+            for (var i = 0; i < rocksToAdd; i++)
             {
                 rocks.Add(new SoftBody(this.graphics, Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
-                    getRandomSize(), ROCK_DENSITY, this.graphics.hue(ROCK_COLOR), this.graphics.saturation(ROCK_COLOR), this.graphics.brightness(ROCK_COLOR), this,
+                    getRandomSize(), ROCK_DENSITY, ROCK_COLOR.HueF(), ROCK_COLOR.SaturationF(), ROCK_COLOR.LuminosityF(), this,
                     year));
             }
 
@@ -137,7 +135,7 @@ namespace core
             {
                 for (var y = 0; y < boardHeight; y++)
                 {
-                    tiles[x, y].drawTile(scaleUp, (mX == x && mY == y));
+                    tiles[x, y].drawTile(this.graphics, scaleUp, (mX == x && mY == y));
                 }
             }
             for (var i = 0; i < rocks.Count; i++)
@@ -298,7 +296,7 @@ namespace core
                     else if (i == 1)
                     {
                         this.graphics.text("-" + creatureMinimumIncrement +
-                             "                    +" + creatureMinimumIncrement, x + 110, y + 37);
+                                           "                    +" + creatureMinimumIncrement, x + 110, y + 37);
                     }
                     else if (i <= 5)
                     {
@@ -515,10 +513,10 @@ namespace core
 
         private float getGrowableTime()
         {
-            var temperatureRange = MAX_TEMPERATURE - MIN_TEMPERATURE;
+            var temperatureRange = maxTemperature - minTemperature;
             return
                 (float)
-                    (MIN_TEMPERATURE + temperatureRange*0.5 - temperatureRange*0.5*Math.Cos((float) (getSeason()*2*Math.PI)));
+                    (minTemperature + temperatureRange*0.5 - temperatureRange*0.5*Math.Cos((float) (getSeason()*2*Math.PI)));
         }
 
         private double getSeason()
@@ -542,8 +540,8 @@ namespace core
             this.graphics.stroke(0, 0, 1);
             this.graphics.strokeWeight(3);
             this.graphics.line(x1, zeroLineY, x1 + w, zeroLineY);
-            var minY = y1 + h*(1 - (MIN_TEMPERATURE - min)/(max - min));
-            var maxY = y1 + h*(1 - (MAX_TEMPERATURE - min)/(max - min));
+            var minY = y1 + h*(1 - (minTemperature - min)/(max - min));
+            var maxY = y1 + h*(1 - (maxTemperature - min)/(max - min));
             this.graphics.fill(0, 0, 0.8f);
             this.graphics.line(x1, minY, x1 + w*1.8, minY);
             this.graphics.line(x1, maxY, x1 + w*1.8, maxY);
@@ -551,8 +549,8 @@ namespace core
 
             this.graphics.fill(0, 0, 1);
             this.graphics.text("Zero", x1 - 5, zeroLineY + 8);
-            this.graphics.text(MIN_TEMPERATURE.ToString(0, 2), x1 - 5, minY + 8);
-            this.graphics.text(MAX_TEMPERATURE.ToString(0, 2), x1 - 5, maxY + 8);
+            this.graphics.text(minTemperature.ToString(0, 2), x1 - 5, minY + 8);
+            this.graphics.text(maxTemperature.ToString(0, 2), x1 - 5, maxY + 8);
         }
 
         private void drawVerticalSlider(float x1, float y1, float w, float h, float prog, hslColor fillColor, hslColor antiColor)
@@ -573,12 +571,12 @@ namespace core
 
         public bool setMinTemperature(float temp)
         {
-            MIN_TEMPERATURE = tempBounds(THERMOMETER_MIN + temp*(THERMOMETER_MAX - THERMOMETER_MIN));
-            if (MIN_TEMPERATURE > MAX_TEMPERATURE)
+            minTemperature = tempBounds(THERMOMETER_MIN + temp*(THERMOMETER_MAX - THERMOMETER_MIN));
+            if (minTemperature > maxTemperature)
             {
-                var placeHolder = MAX_TEMPERATURE;
-                MAX_TEMPERATURE = MIN_TEMPERATURE;
-                MIN_TEMPERATURE = placeHolder;
+                var placeHolder = maxTemperature;
+                maxTemperature = minTemperature;
+                minTemperature = placeHolder;
                 return true;
             }
             return false;
@@ -586,12 +584,12 @@ namespace core
 
         public bool setMaxTemperature(float temp)
         {
-            MAX_TEMPERATURE = tempBounds(THERMOMETER_MIN + temp*(THERMOMETER_MAX - THERMOMETER_MIN));
-            if (MIN_TEMPERATURE > MAX_TEMPERATURE)
+            maxTemperature = tempBounds(THERMOMETER_MIN + temp*(THERMOMETER_MAX - THERMOMETER_MIN));
+            if (minTemperature > maxTemperature)
             {
-                var placeHolder = MAX_TEMPERATURE;
-                MAX_TEMPERATURE = MIN_TEMPERATURE;
-                MIN_TEMPERATURE = placeHolder;
+                var placeHolder = maxTemperature;
+                maxTemperature = minTemperature;
+                minTemperature = placeHolder;
                 return true;
             }
             return false;
@@ -604,12 +602,12 @@ namespace core
 
         public float getHighTempProportion()
         {
-            return (MAX_TEMPERATURE - THERMOMETER_MIN)/(THERMOMETER_MAX - THERMOMETER_MIN);
+            return (maxTemperature - THERMOMETER_MIN)/(THERMOMETER_MAX - THERMOMETER_MIN);
         }
 
         public float getLowTempProportion()
         {
-            return (MIN_TEMPERATURE - THERMOMETER_MIN)/(THERMOMETER_MAX - THERMOMETER_MIN);
+            return (minTemperature - THERMOMETER_MIN)/(THERMOMETER_MAX - THERMOMETER_MIN);
         }
 
         private string toDate(double d)

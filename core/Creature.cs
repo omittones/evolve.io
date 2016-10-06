@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using core.Graphics;
 
 namespace core
 {
@@ -480,9 +481,9 @@ namespace core
                 visionOccludedX[k] = endX;
                 visionOccludedY[k] = endY;
                 var c = getColorAt(endX, endY);
-                visionResults[k*3] = this.graphics.hue(c);
-                visionResults[k*3 + 1] = this.graphics.saturation(c);
-                visionResults[k*3 + 2] = this.graphics.brightness(c);
+                visionResults[k*3] = c.HueF();
+                visionResults[k*3 + 1] = c.SaturationF();
+                visionResults[k*3 + 2] = c.LuminosityF();
 
                 var prevTileX = -1;
                 var prevTileY = -1;

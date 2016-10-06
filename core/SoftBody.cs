@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using core.Graphics;
 
 namespace core
 {
@@ -140,18 +141,23 @@ namespace core
                     }
                 }
             }
+
             for (var i = 0; i < colliders.Count; i++)
             {
                 var collider = colliders[i];
                 var distance = MathEx.Distance((float) px, (float) py, (float) collider.px, (float) collider.py);
                 var combinedRadius = getRadius() + collider.getRadius();
-                if (distance < combinedRadius)
+                if (distance < combinedRadius && Math.Abs(distance) > 0)
                 {
                     var force = combinedRadius*COLLISION_FORCE;
                     vx += ((px - collider.px)/distance)*force/getMass();
                     vy += ((py - collider.py)/distance)*force/getMass();
+
+                    if (double.IsNaN(vx) || double.IsNaN(vy))
+                        throw new ApplicationException("Invalid values!");
                 }
             }
+
             fightLevel = 0;
         }
 
@@ -162,12 +168,15 @@ namespace core
             vx *= (1 - FRICTION/getMass());
             vy *= (1 - FRICTION/getMass());
             setSBIP(true);
+
+            if (double.IsNaN(px) || double.IsNaN(py))
+                throw new ApplicationException("Invalid values!");
         }
 
         public void drawSoftBody(float scaleUp)
         {
             var radius = getRadius();
-            this.graphics.stroke(0);
+            this.graphics.stroke(0, 0, 0);
             this.graphics.strokeWeight(2);
             this.graphics.fill((float) myHue, (float) mySaturation, (float) myBrightness);
             this.graphics.ellipseMode(EllipseMode.RADIUS);
@@ -183,7 +192,7 @@ namespace core
             return Math.Sqrt(energy/ENERGY_DENSITY/Math.PI);
         }
 
-        public double getMass()
+        protected double getMass()
         {
             return energy/ENERGY_DENSITY*density;
         }

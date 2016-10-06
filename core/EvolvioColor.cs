@@ -1,15 +1,15 @@
 using System;
+using core.Graphics;
 
 namespace core
 {
     public class EvolvioColor
     {
         public const double TIME_STEP = 0.001;
-        public const float GROSS_OVERALL_SCALE_FACTOR = ((float) WINDOW_HEIGHT)/BOARD_HEIGHT/SCALE_TO_FIX_BUG;
+        
         public const int CREATURE_MINIMUM = 60;
         public const int ROCKS_TO_ADD = 0;
         public const int SEED = 48;
-        public const int WINDOW_WIDTH = 1920;
         public const string INITIAL_FILE_NAME = "DEFAULT";
         public const float MAX_TEMPERATURE = 1.0f;
         public const float MIN_TEMPERATURE = -0.5f;
@@ -17,7 +17,10 @@ namespace core
         public const float SCALE_TO_FIX_BUG = 100;
         public const int BOARD_HEIGHT = 100;
         public const int BOARD_WIDTH = 100;
-        public const int WINDOW_HEIGHT = 1080;
+
+        private int windowWidth;
+        private int windowHeight;
+        private float grossOverallScaleFactor;
 
         private Board evoBoard;
         private bool draggedFar;
@@ -31,15 +34,20 @@ namespace core
         private PFont myFont;
         private GraphicsEngine graphics;
 
-        public void setup(GraphicsEngine graphics)
+        public void setup(GraphicsEngine graphics, int width, int height)
         {
+            this.windowWidth = width;
+            this.windowHeight = height;
+            this.grossOverallScaleFactor = ((float)windowHeight) / BOARD_HEIGHT / SCALE_TO_FIX_BUG;
+
             this.graphics = graphics;
             this.graphics.colorMode(ColorMode.HSB, 1.0f);
             myFont = this.graphics.loadFont("Jygquip1-48.vlw");
-            this.graphics.size(WINDOW_WIDTH, WINDOW_HEIGHT);
-            evoBoard = new Board(this.graphics, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE, MIN_TEMPERATURE,
-                MAX_TEMPERATURE,
-                ROCKS_TO_ADD, CREATURE_MINIMUM, SEED, INITIAL_FILE_NAME, TIME_STEP);
+            evoBoard = new Board(this.graphics, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE,
+                MIN_TEMPERATURE, MAX_TEMPERATURE,
+                ROCKS_TO_ADD, CREATURE_MINIMUM, SEED,
+                INITIAL_FILE_NAME, TIME_STEP);
+
             resetZoom();
         }
 
@@ -84,7 +92,7 @@ namespace core
                 cameraR = 0;
             }
             this.graphics.pushMatrix();
-            this.graphics.scale(GROSS_OVERALL_SCALE_FACTOR);
+            this.graphics.scale(grossOverallScaleFactor);
             evoBoard.drawBlankBoard(SCALE_TO_FIX_BUG);
             this.graphics.translate(BOARD_WIDTH*0.5f*SCALE_TO_FIX_BUG, BOARD_HEIGHT*0.5f*SCALE_TO_FIX_BUG);
             this.graphics.scale(zoom);
@@ -96,7 +104,7 @@ namespace core
             evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(this.graphics.mouseX, this.graphics.mouseY),
                 (int) toWorldYCoordinate(this.graphics.mouseX, this.graphics.mouseY));
             this.graphics.popMatrix();
-            evoBoard.drawUI(SCALE_TO_FIX_BUG, TIME_STEP, WINDOW_HEIGHT, 0, WINDOW_WIDTH, WINDOW_HEIGHT, myFont);
+            evoBoard.drawUI(SCALE_TO_FIX_BUG, TIME_STEP, windowHeight, 0, windowWidth, windowHeight, myFont);
 
             evoBoard.fileSave();
             prevMouseX = this.graphics.mouseX;
@@ -118,13 +126,13 @@ namespace core
 
         public void mousePressed()
         {
-            if (this.graphics.mouseX < WINDOW_HEIGHT)
+            if (this.graphics.mouseX < windowHeight)
             {
                 dragging = 1;
             }
             else
             {
-                if (Math.Abs(this.graphics.mouseX - (WINDOW_HEIGHT + 65)) <= 60 && Math.Abs(this.graphics.mouseY - 147) <= 60 &&
+                if (Math.Abs(this.graphics.mouseX - (windowHeight + 65)) <= 60 && Math.Abs(this.graphics.mouseY - 147) <= 60 &&
                     evoBoard.selectedCreature != null)
                 {
                     cameraX = (float) evoBoard.selectedCreature.px;
@@ -133,18 +141,18 @@ namespace core
                 }
                 else if (this.graphics.mouseY >= 95 && this.graphics.mouseY < 135 && evoBoard.selectedCreature == null)
                 {
-                    if (this.graphics.mouseX >= WINDOW_HEIGHT + 10 && this.graphics.mouseX < WINDOW_HEIGHT + 230)
+                    if (this.graphics.mouseX >= windowHeight + 10 && this.graphics.mouseX < windowHeight + 230)
                     {
                         resetZoom();
                     }
-                    else if (this.graphics.mouseX >= WINDOW_HEIGHT + 240 && this.graphics.mouseX < WINDOW_HEIGHT + 460)
+                    else if (this.graphics.mouseX >= windowHeight + 240 && this.graphics.mouseX < windowHeight + 460)
                     {
                         evoBoard.creatureRankMetric = (evoBoard.creatureRankMetric + 1)%8;
                     }
                 }
                 else if (this.graphics.mouseY >= 570)
                 {
-                    float x = (this.graphics.mouseX - (WINDOW_HEIGHT + 10));
+                    float x = (this.graphics.mouseX - (windowHeight + 10));
                     float y = (this.graphics.mouseY - 570);
                     var clickedOnLeft = (x%230 < 110);
                     if (x >= 0 && x < 2*230 && y >= 0 && y < 4*50 && x%230 < 220 && y%50 < 40)
@@ -265,7 +273,7 @@ namespace core
         {
             if (!draggedFar)
             {
-                if (this.graphics.mouseX < WINDOW_HEIGHT)
+                if (this.graphics.mouseX < windowHeight)
                 {
                     // DO NOT LOOK AT THIS CODE EITHER it is bad
                     dragging = 1;
@@ -314,12 +322,12 @@ namespace core
         private float grossify(float input, float total)
         {
             // Very weird function
-            return (input/GROSS_OVERALL_SCALE_FACTOR - total*0.5f*SCALE_TO_FIX_BUG)/SCALE_TO_FIX_BUG;
+            return (input/grossOverallScaleFactor - total*0.5f*SCALE_TO_FIX_BUG)/SCALE_TO_FIX_BUG;
         }
 
         private float toWorldXCoordinate(float x, float y)
         {
-            var w = WINDOW_HEIGHT/2.0f;
+            var w = windowHeight/2.0f;
             var angle = (float) Math.Atan2(y - w, x - w);
             var dist2 = MathEx.Distance(w, w, x, y);
             return cameraX + grossify((float) Math.Cos(angle - cameraR)*dist2 + w, BOARD_WIDTH)/zoom;
@@ -327,7 +335,7 @@ namespace core
 
         private float toWorldYCoordinate(float x, float y)
         {
-            var w = WINDOW_HEIGHT/2.0f;
+            var w = windowHeight/2.0f;
             var angle = (float) Math.Atan2(y - w, x - w);
             var dist2 = MathEx.Distance(w, w, x, y);
             return cameraY + grossify((float) Math.Sin(angle - cameraR)*dist2 + w, BOARD_HEIGHT)/zoom;
