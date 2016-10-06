@@ -6,10 +6,10 @@ namespace core
     {
         public const float FOOD_GROWTH_RATE = 1.0f;
 
-        public readonly color barrenColor = new color(0, 0, 1);
-        public readonly color fertileColor = new color(0, 0, 0.2f);
-        public readonly color blackColor = new color(0, 1, 0);
-        public readonly color waterColor = new color(0, 0, 0);
+        public readonly hslColor barrenColor = new hslColor(0, 0, 1);
+        public readonly hslColor fertileColor = new hslColor(0, 0, 0.2f);
+        public readonly hslColor blackColor = new hslColor(0, 1, 0);
+        public readonly hslColor waterColor = new hslColor(0, 0, 0);
 
         public readonly float fertility;
         private readonly float maxGrowthLevel = 1.0f;
@@ -92,9 +92,9 @@ namespace core
             }
         }
 
-        public color getColor()
+        public hslColor getColor()
         {
-            var foodColor = new color(foodType, 1, 1);
+            var foodColor = new hslColor(foodType, 1, 1);
             if (fertility > 1)
             {
                 return waterColor;
@@ -107,15 +107,15 @@ namespace core
             return interColorFixedHue(foodColor, blackColor, 1.0f - maxGrowthLevel/foodLevel, this.graphics.hue(foodColor));
         }
 
-        public color interColor(color a, color b, float x)
+        public hslColor interColor(hslColor a, hslColor b, float x)
         {
             var hue1 = inter(this.graphics.hue(a), this.graphics.hue(b), x);
             var sat = inter(this.graphics.saturation(a), this.graphics.saturation(b), x);
             var bri = inter(this.graphics.brightness(a), this.graphics.brightness(b), x); // I know it's dumb to do interpolation with HSL but oh well
-            return new color(hue1, sat, bri);
+            return new hslColor(hue1, sat, bri);
         }
 
-        public color interColorFixedHue(color a, color b, float x, float hue)
+        public hslColor interColorFixedHue(hslColor a, hslColor b, float x, float hue)
         {
             var satB = this.graphics.saturation(b);
             if (this.graphics.brightness(b) == 0)
@@ -125,7 +125,7 @@ namespace core
             }
             var sat = inter(this.graphics.saturation(a), satB, x);
             var bri = inter(this.graphics.brightness(a), this.graphics.brightness(b), x); // I know it's dumb to do interpolation with HSL but oh well
-            return new color(hue, sat, bri);
+            return new hslColor(hue, sat, bri);
         }
 
         public float inter(float a, float b, float x)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace core
 {
@@ -7,7 +8,7 @@ namespace core
     {
         public bool userControl;
         public bool wasPressingB;
-        public color buttonColor = new color(0.82f, 0.8f, 0.7f);
+        public hslColor buttonColor = new hslColor(0.82f, 0.8f, 0.7f);
         public const int LIST_SLOTS = 6;
         public Creature selectedCreature;
         public Creature[] list = new Creature[LIST_SLOTS];
@@ -41,8 +42,8 @@ namespace core
         public int creatureIDUpTo = 0;
         public int creatureMinimum;
         public List<SoftBody>[,] softBodiesInPositions;
-        public readonly color BACKGROUND_COLOR = new color(0, 0, 0.1f);
-        public readonly color ROCK_COLOR = new color(0, 0, 0.5f);
+        public readonly hslColor BACKGROUND_COLOR = new hslColor(0, 0, 0.1f);
+        public readonly hslColor ROCK_COLOR = new hslColor(0, 0, 0.5f);
         public readonly double FLASH_SPEED = 80;
         public const float MAX_CREATURE_ENERGY = 2.0f;
         public const float MAX_ROCK_ENERGY_BASE = 1.6f;
@@ -67,7 +68,7 @@ namespace core
 
             Rnd.noiseSeed(seed);
             Rnd.randomSeed(seed);
-            
+
             boardWidth = width;
             boardHeight = height;
             tiles = new Tile[width, height];
@@ -369,7 +370,7 @@ namespace core
             this.graphics.textAlign(AlignText.RIGHT);
             this.graphics.textFont(font, 24);
             this.graphics.text("Temperature", -10, 24);
-            drawThermometer(-45, 30, 20, 660, temperature, THERMOMETER_MIN, THERMOMETER_MAX, new color(0, 1, 1));
+            drawThermometer(-45, 30, 20, 660, temperature, THERMOMETER_MIN, THERMOMETER_MAX, new hslColor(0, 1, 1));
             this.graphics.popMatrix();
 
             if (selectedCreature != null)
@@ -449,12 +450,12 @@ namespace core
                     {
                         if (this.graphics.keyPressed)
                         {
-                            if (this.graphics.key == Key.CODED)
+                            if (this.graphics.key == char.MaxValue)
                             {
-                                if (this.graphics.keyCode == Key.UP) me.accelerate(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.keyCode == Key.DOWN) me.accelerate(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.keyCode == Key.LEFT) me.turn(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.keyCode == Key.RIGHT) me.turn(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Keys.Up) me.accelerate(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Keys.Down) me.accelerate(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Keys.Left) me.turn(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Keys.Right) me.turn(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                             }
                             else
                             {
@@ -463,19 +464,8 @@ namespace core
                                 if (this.graphics.key == 'f') me.fight(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                                 if (this.graphics.key == 'u') me.setHue(me.myHue + 0.02);
                                 if (this.graphics.key == 'j') me.setHue(me.myHue - 0.02);
-
                                 if (this.graphics.key == 'i') me.setMouthHue(me.mouthHue + 0.02);
                                 if (this.graphics.key == 'k') me.setMouthHue(me.mouthHue - 0.02);
-                                /*if(key == 'i') me.setSaturarion(me.saturation+0.05);
-              if(key == 'k') me.setSaturarion(me.saturation-0.05);
-              if(key == 'o') me.setBrightness(me.brightness+0.05);
-              if(key == 'l') me.setBrightness(me.brightness-0.05);
-
-
-              if(key == 'w') me.setVisionDistance(me.visionDistance+0.05);
-              if(key == 's') me.setVisionDistance(me.visionDistance-0.05);
-              if(key == 'a') me.setVisionAngle(me.visionAngle-0.05);
-              if(key == 'd') me.setVisionAngle(me.visionAngle+0.05);*/
                                 if (this.graphics.key == 'b')
                                 {
                                     if (!wasPressingB)
@@ -537,7 +527,7 @@ namespace core
         }
 
         private void drawThermometer(float x1, float y1, float w, float h, float prog, float min, float max,
-            color fillColor)
+            hslColor fillColor)
         {
             this.graphics.noStroke();
             this.graphics.fill(0, 0, 0.2f);
@@ -565,7 +555,7 @@ namespace core
             this.graphics.text(MAX_TEMPERATURE.ToString(0, 2), x1 - 5, maxY + 8);
         }
 
-        private void drawVerticalSlider(float x1, float y1, float w, float h, float prog, color fillColor, color antiColor)
+        private void drawVerticalSlider(float x1, float y1, float w, float h, float prog, hslColor fillColor, hslColor antiColor)
         {
             this.graphics.noStroke();
             this.graphics.fill(0, 0, 0.2f);

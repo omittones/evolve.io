@@ -1,19 +1,112 @@
 using System;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace core
 {
+    public interface IDrawer
+    {
+        void Rectangle(float x, float y, float width, float height);
+    }
+
+    public class FilledDrawer : IDrawer
+    {
+        private readonly Graphics engine;
+        private readonly hslColor fillColor;
+
+        public FilledDrawer(Graphics engine, hslColor fillColor)
+        {
+            this.engine = engine;
+            this.fillColor = fillColor;
+        }
+
+        public void Rectangle(float x, float y, float width, float height)
+        {
+            this.engine.FillRectangle(new SolidBrush(this.fillColor), x, y, width, height);
+        }
+    }
+
+    public class NormalDrawer : IDrawer
+    {
+        private Graphics engine;
+
+        public NormalDrawer(Graphics engine)
+        {
+            this.engine = engine;
+        }
+
+        public void Rectangle(float x, float y, float width, float height)
+        {
+            this.engine.FillRectangle(new SolidBrush(Color.Black), x, y, width, height);
+        }
+    }
+
     public class GraphicsEngine
     {
+        public readonly float screenWidth;
+        public readonly float screenHeight;
         public bool keyPressed;
-        public int keyCode;
+        public Keys keyCode;
         public char key;
         public int mouseX;
         public int mouseY;
-        public float screenWidth;
-        public float screenHeight;
+        private readonly NormalDrawer normalDrawer;
+        private readonly Graphics engine;
+        private IDrawer drawer;
+        public readonly PFont font;
+
+        public GraphicsEngine(
+            Form container,
+            Image image)
+        {
+            this.engine = Graphics.FromImage(image);
+            this.normalDrawer = new NormalDrawer(this.engine);
+
+            this.screenWidth = image.Width;
+            this.screenHeight = image.Height;
+
+            container.MouseMove += UpdateMouse;
+            container.KeyDown += SetKeyCode;
+            container.KeyPress += SetKeyChar;
+            container.KeyUp += RemoveKeyCode;
+        }
+
+        private void SetKeyChar(object sender, KeyPressEventArgs e)
+        {
+            this.key = e.KeyChar;
+        }
+
+        private void SetKeyCode(object sender, KeyEventArgs e)
+        {
+            this.keyPressed = true;
+            this.keyCode = e.KeyCode;
+            this.key = char.MaxValue;
+        }
+
+        private void RemoveKeyCode(object sender, KeyEventArgs e)
+        {
+            this.keyPressed = false;
+        }
+
+        private void UpdateMouse(object sender, MouseEventArgs e)
+        {
+            this.mouseX = e.X;
+            this.mouseY = e.Y;
+        }
 
         public void noFill()
         {
+            this.drawer = this.normalDrawer;
+        }
+
+        public void fill(hslColor color)
+        {
+            this.drawer = new FilledDrawer(this.engine, color);
+        }
+
+        public void fill(float h, float s, float l, float alpha = 1)
+        {
+            this.drawer = new FilledDrawer(this.engine, new hslColor(h, s, l, alpha));
         }
 
         public void size(int width, int height)
@@ -76,7 +169,7 @@ namespace core
         {
         }
 
-        public void stroke(color color)
+        public void stroke(hslColor color)
         {
         }
 
@@ -92,37 +185,22 @@ namespace core
         {
         }
 
-        public void fill(color color)
+        public void rect(float x, float y, float width, float height)
         {
-
+            this.drawer.Rectangle(x, y, width, height);
         }
 
-        public void fill(float a, float b, float c)
-        {
-
-        }
-
-        public void fill(float a, float b, float c, float d)
-        {
-
-        }
-
-        public void rect(float a, float b, float c, float d)
-        {
-
-        }
-
-        public float hue(color clr)
+        public float hue(hslColor clr)
         {
             return 0;
         }
 
-        public float brightness(color clr)
+        public float brightness(hslColor clr)
         {
             return 0;
         }
 
-        public float saturation(color clr)
+        public float saturation(hslColor clr)
         {
             return 0;
         }
@@ -145,11 +223,8 @@ namespace core
             return 0;
         }
 
-        public PFont font;
-
         public void textFont(PFont font, float size)
         {
-
         }
     }
 }

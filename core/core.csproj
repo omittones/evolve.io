@@ -48,7 +48,7 @@
   <ItemGroup>
     <Compile Include="Axon.cs" />
     <Compile Include="Board.cs" />
-    <Compile Include="color.cs" />
+    <Compile Include="hslColor.cs" />
     <Compile Include="ColorMode.cs" />
     <Compile Include="Creature.cs" />
     <Compile Include="EllipseMode.cs" />

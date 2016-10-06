@@ -255,22 +255,22 @@ namespace core
             return 1.0/(1.0 + Math.Pow(2.71828182846, -input));
         }
 
-        public color neuronFillColor(double d)
+        public hslColor neuronFillColor(double d)
         {
             if (d >= 0)
             {
-                return new color(0, 0, 1, (float) (d));
+                return new hslColor(0, 0, 1, (float) (d));
             }
-            return new color(0, 0, 0, (float) (-d));
+            return new hslColor(0, 0, 0, (float) (-d));
         }
 
-        public color neuronTextColor(double d)
+        public hslColor neuronTextColor(double d)
         {
             if (d >= 0)
             {
-                return new color(0, 0, 0);
+                return new hslColor(0, 0, 0);
             }
-            return new color(0, 0, 1);
+            return new hslColor(0, 0, 1);
         }
 
         public void drawSoftBody(float scaleUp, float camZoom, bool showVision)
@@ -281,10 +281,10 @@ namespace core
             {
                 for (var i = 0; i < visionAngles.Length; i++)
                 {
-                    var visionUIcolor = new color(0, 0, 1);
+                    var visionUIcolor = new hslColor(0, 0, 1);
                     if (visionResults[i*3 + 2] > BRIGHTNESS_THRESHOLD)
                     {
-                        visionUIcolor = new color(0, 0, 0);
+                        visionUIcolor = new hslColor(0, 0, 0);
                     }
                     this.graphics.stroke(visionUIcolor);
                     this.graphics.strokeWeight(2);
@@ -535,7 +535,7 @@ namespace core
             }
         }
 
-        public color getColorAt(double x, double y)
+        public hslColor getColorAt(double x, double y)
         {
             if (x >= 0 && x < board.boardWidth && y >= 0 && y < board.boardHeight)
             {
