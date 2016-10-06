@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace core
 {
-    public class Board : Helpers
+    public class Board
     {
         public bool userControl;
         public bool wasPressingB;
-        public color buttonColor = color(0.82, 0.8, 0.7);
+        public color buttonColor = new color(0.82f, 0.8f, 0.7f);
         public const int LIST_SLOTS = 6;
         public Creature selectedCreature;
         public Creature[] list = new Creature[LIST_SLOTS];
@@ -36,12 +36,13 @@ namespace core
         public List<Creature> creatures;
         public List<SoftBody> rocks;
         public int boardHeight;
+        private readonly GraphicsEngine graphics;
         public int boardWidth;
         public int creatureIDUpTo = 0;
         public int creatureMinimum;
         public List<SoftBody>[,] softBodiesInPositions;
-        public readonly color BACKGROUND_COLOR = color(0, 0, 0.1);
-        public readonly color ROCK_COLOR = color(0, 0, 0.5);
+        public readonly color BACKGROUND_COLOR = new color(0, 0, 0.1f);
+        public readonly color ROCK_COLOR = new color(0, 0, 0.5f);
         public readonly double FLASH_SPEED = 80;
         public const float MAX_CREATURE_ENERGY = 2.0f;
         public const float MAX_ROCK_ENERGY_BASE = 1.6f;
@@ -57,14 +58,19 @@ namespace core
         public string folder = "TEST";
         public Tile[,] tiles;
 
-        public Board(int w, int h, float stepSize, float minTemp, float maxTemp, int rocksToAdd,
+        public Board(
+            GraphicsEngine graphics,
+            int width, int height, float stepSize, float minTemp, float maxTemp, int rocksToAdd,
             int minimumCreatures, int seed, string initialFileName, double timeStep)
         {
+            this.graphics = graphics;
+
             Rnd.noiseSeed(seed);
             Rnd.randomSeed(seed);
-            boardWidth = w;
-            boardHeight = h;
-            tiles = new Tile[w, h];
+            
+            boardWidth = width;
+            boardHeight = height;
+            tiles = new Tile[width, height];
             for (var x = 0; x < boardWidth; x++)
             {
                 for (var y = 0; y < boardHeight; y++)
@@ -76,7 +82,7 @@ namespace core
                              Rnd.noise(x*stepSize*0.5, y*stepSize*0.5)*bigForce*5.0 - 1.5);
                     var climateType = (float) (Rnd.noise(x*stepSize + 10000, y*stepSize + 10000)*1.63 - 0.4);
                     climateType = Math.Min(Math.Max(climateType, 0), 0.8f);
-                    tiles[x, y] = new Tile(x, y, fertility, 0, climateType);
+                    tiles[x, y] = new Tile(this.graphics, x, y, fertility, 0, climateType);
                 }
             }
             MIN_TEMPERATURE = minTemp;
@@ -95,8 +101,8 @@ namespace core
             rocks = new List<SoftBody>(0);
             for (var i = 0; i < ROCKS_TO_ADD; i++)
             {
-                rocks.Add(new SoftBody(Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
-                    getRandomSize(), ROCK_DENSITY, hue(ROCK_COLOR), saturation(ROCK_COLOR), brightness(ROCK_COLOR), this,
+                rocks.Add(new SoftBody(this.graphics, Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
+                    getRandomSize(), ROCK_DENSITY, this.graphics.hue(ROCK_COLOR), this.graphics.saturation(ROCK_COLOR), this.graphics.brightness(ROCK_COLOR), this,
                     year));
             }
 
@@ -145,29 +151,29 @@ namespace core
 
         public void drawBlankBoard(float scaleUp)
         {
-            fill(BACKGROUND_COLOR);
-            rect(0, 0, scaleUp*boardWidth, scaleUp*boardHeight);
+            this.graphics.fill(BACKGROUND_COLOR);
+            this.graphics.rect(0, 0, scaleUp*boardWidth, scaleUp*boardHeight);
         }
 
         public void drawUI(float scaleUp, double timeStep, int x1, int y1, int x2, int y2, PFont font)
         {
-            fill(0, 0, 0);
-            noStroke();
-            rect(x1, y1, x2 - x1, y2 - y1);
+            this.graphics.fill(0, 0, 0);
+            this.graphics.noStroke();
+            this.graphics.rect(x1, y1, x2 - x1, y2 - y1);
 
-            pushMatrix();
-            translate(x1, y1);
+            this.graphics.pushMatrix();
+            this.graphics.translate(x1, y1);
 
-            fill(0, 0, 1);
-            textAlign(AlignText.LEFT);
-            textFont(font, 48);
+            this.graphics.fill(0, 0, 1);
+            this.graphics.textAlign(AlignText.LEFT);
+            this.graphics.textFont(font, 48);
             var yearText = "Year " + ((float) year).ToString(0, 2);
-            text(yearText, 10, 48);
-            var seasonTextXCoor = textWidth(yearText) + 50;
-            textFont(font, 24);
-            text("Population: " + creatures.Count, 10, 80);
+            this.graphics.text(yearText, 10, 48);
+            var seasonTextXCoor = this.graphics.textWidth(yearText) + 50;
+            this.graphics.textFont(font, 24);
+            this.graphics.text("Population: " + creatures.Count, 10, 80);
             string[] seasons = {"Winter", "Spring", "Summer", "Autumn"};
-            text(seasons[(int) (getSeason()*4)], seasonTextXCoor, 30);
+            this.graphics.text(seasons[(int) (getSeason()*4)], seasonTextXCoor, 30);
 
             if (selectedCreature == null)
             {
@@ -226,40 +232,40 @@ namespace core
                         list[i].preferredRank += (i - list[i].preferredRank)*0.4f;
                         var y = y1 + 175 + 70*list[i].preferredRank;
                         drawCreature(list[i], 45, y + 5, 0.7f, scaleUp);
-                        textFont(font, 24);
-                        textAlign(AlignText.LEFT);
-                        noStroke();
-                        fill(0.333f, 1, 0.4f);
+                        this.graphics.textFont(font, 24);
+                        this.graphics.textAlign(AlignText.LEFT);
+                        this.graphics.noStroke();
+                        this.graphics.fill(0.333f, 1, 0.4f);
                         float multi = (x2 - x1 - 200);
                         if (list[i].energy > 0)
                         {
-                            rect(85, y + 5, (float) (multi*list[i].energy/maxEnergy), 25);
+                            this.graphics.rect(85, y + 5, (float) (multi*list[i].energy/maxEnergy), 25);
                         }
                         if (list[i].energy > 1)
                         {
-                            fill(0.333f, 1, 0.8f);
-                            rect(85 + (float) (multi/maxEnergy), y + 5, (float) (multi*(list[i].energy - 1)/maxEnergy), 25);
+                            this.graphics.fill(0.333f, 1, 0.8f);
+                            this.graphics.rect(85 + (float) (multi/maxEnergy), y + 5, (float) (multi*(list[i].energy - 1)/maxEnergy), 25);
                         }
-                        fill(0, 0, 1);
-                        text(list[i].getCreatureName() + " [" + list[i].id + "] (" + toAge(list[i].birthTime) + ")", 90, y);
-                        text("Energy: " + (100*(float) (list[i].energy)).ToString(0, 2), 90, y + 25);
+                        this.graphics.fill(0, 0, 1);
+                        this.graphics.text(list[i].getCreatureName() + " [" + list[i].id + "] (" + toAge(list[i].birthTime) + ")", 90, y);
+                        this.graphics.text("Energy: " + (100*(float) (list[i].energy)).ToString(0, 2), 90, y + 25);
                     }
                 }
-                noStroke();
-                fill(buttonColor);
-                rect(10, 95, 220, 40);
-                rect(240, 95, 220, 40);
-                fill(0, 0, 1);
-                textAlign(AlignText.CENTER);
-                text("Reset zoom", 120, 123);
+                this.graphics.noStroke();
+                this.graphics.fill(buttonColor);
+                this.graphics.rect(10, 95, 220, 40);
+                this.graphics.rect(240, 95, 220, 40);
+                this.graphics.fill(0, 0, 1);
+                this.graphics.textAlign(AlignText.CENTER);
+                this.graphics.text("Reset zoom", 120, 123);
                 string[] sorts =
                 {
                     "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A", "Highest Gen",
                     "Lowest Gen"
                 };
-                text("Sort by: " + sorts[creatureRankMetric], 350, 123);
+                this.graphics.text("Sort by: " + sorts[creatureRankMetric], 350, 123);
 
-                textFont(font, 19);
+                this.graphics.textFont(font, 19);
                 string[] buttonTexts =
                 {
                     "Brain Control", "Maintain pop. at " + creatureMinimum,
@@ -275,96 +281,96 @@ namespace core
                 {
                     float x = (i%2)*230 + 10;
                     var y = (float) (Math.Floor(i/2.0)*50 + 570);
-                    fill(buttonColor);
-                    rect(x, y, 220, 40);
+                    this.graphics.fill(buttonColor);
+                    this.graphics.rect(x, y, 220, 40);
                     if (i >= 2 && i < 6)
                     {
                         var flashAlpha = 1.0*Math.Pow(0.5, (year - fileSaveTimes[i - 2])*FLASH_SPEED);
-                        fill(0, 0, 1, (float) flashAlpha);
-                        rect(x, y, 220, 40);
+                        this.graphics.fill(0, 0, 1, (float) flashAlpha);
+                        this.graphics.rect(x, y, 220, 40);
                     }
-                    fill(0, 0, 1, 1);
-                    text(buttonTexts[i], x + 110, y + 17);
+                    this.graphics.fill(0, 0, 1, 1);
+                    this.graphics.text(buttonTexts[i], x + 110, y + 17);
                     if (i == 0)
                     {
                     }
                     else if (i == 1)
                     {
-                        text("-" + creatureMinimumIncrement +
+                        this.graphics.text("-" + creatureMinimumIncrement +
                              "                    +" + creatureMinimumIncrement, x + 110, y + 37);
                     }
                     else if (i <= 5)
                     {
-                        text(getNextFileName(i - 2), x + 110, y + 37);
+                        this.graphics.text(getNextFileName(i - 2), x + 110, y + 37);
                     }
                 }
             }
             else
             {
                 var energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
-                noStroke();
+                this.graphics.noStroke();
                 if (energyUsage <= 0)
                 {
-                    fill(0, 1, 0.5f);
+                    this.graphics.fill(0, 1, 0.5f);
                 }
                 else
                 {
-                    fill(0.33f, 1, 0.4f);
+                    this.graphics.fill(0.33f, 1, 0.4f);
                 }
                 var EUbar = 6*energyUsage;
-                rect(110, 280, Math.Min(Math.Max(EUbar, -110), 110), 25);
+                this.graphics.rect(110, 280, Math.Min(Math.Max(EUbar, -110), 110), 25);
                 if (EUbar < -110)
                 {
-                    rect(0, 280, 25, (-110 - EUbar)*20 + 25);
+                    this.graphics.rect(0, 280, 25, (-110 - EUbar)*20 + 25);
                 }
                 else if (EUbar > 110)
                 {
                     var h = (EUbar - 110)*20 + 25;
-                    rect(185, 280 - h, 25, h);
+                    this.graphics.rect(185, 280 - h, 25, h);
                 }
-                fill(0, 0, 1);
-                text("Name: " + selectedCreature.getCreatureName(), 10, 225);
-                text("Energy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums", 10, 250);
-                text("E Change: " + (100*energyUsage).ToString(0, 2) + " yums/year", 10, 275);
+                this.graphics.fill(0, 0, 1);
+                this.graphics.text("Name: " + selectedCreature.getCreatureName(), 10, 225);
+                this.graphics.text("Energy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums", 10, 250);
+                this.graphics.text("E Change: " + (100*energyUsage).ToString(0, 2) + " yums/year", 10, 275);
 
-                text("ID: " + selectedCreature.id, 10, 325);
-                text("X: " + ((float) selectedCreature.px).ToString(0, 2), 10, 350);
-                text("Y: " + ((float) selectedCreature.py).ToString(0, 2), 10, 375);
-                text("Rotation: " + ((float) selectedCreature.rotation).ToString(0, 2), 10, 400);
-                text("B-day: " + toDate(selectedCreature.birthTime), 10, 425);
-                text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
-                text("Generation: " + selectedCreature.gen, 10, 475);
-                text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
-                text("Hue: " + ((float) (selectedCreature.myHue)).ToString(0, 2), 10, 550, 210, 255);
-                text("Mouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2), 10, 575, 210, 255);
+                this.graphics.text("ID: " + selectedCreature.id, 10, 325);
+                this.graphics.text("X: " + ((float) selectedCreature.px).ToString(0, 2), 10, 350);
+                this.graphics.text("Y: " + ((float) selectedCreature.py).ToString(0, 2), 10, 375);
+                this.graphics.text("Rotation: " + ((float) selectedCreature.rotation).ToString(0, 2), 10, 400);
+                this.graphics.text("B-day: " + toDate(selectedCreature.birthTime), 10, 425);
+                this.graphics.text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
+                this.graphics.text("Generation: " + selectedCreature.gen, 10, 475);
+                this.graphics.text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
+                this.graphics.text("Hue: " + ((float) (selectedCreature.myHue)).ToString(0, 2), 10, 550, 210, 255);
+                this.graphics.text("Mouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2), 10, 575, 210, 255);
 
                 if (userControl)
                 {
-                    text("Controls:\nUp/Down: Move\nLeft/Right: Rotate\nSpace: Eat\nF: Fight\nV: Vomit\nU,J: Change color" +
+                    this.graphics.text("Controls:\nUp/Down: Move\nLeft/Right: Rotate\nSpace: Eat\nF: Fight\nV: Vomit\nU,J: Change color" +
                          "\nI,K: Change mouth color\nB: Give birth (Not possible if under " +
                          Math.Round((MANUAL_BIRTH_SIZE + 1)*100) + " yums)", 10, 625, 250, 400);
                 }
-                pushMatrix();
-                translate(400, 80);
-                var apX = (float) Math.Round((mouseX - 264 - x1)/26.0);
-                var apY = (float) Math.Round((mouseY - 80 - y1)/26.0);
+                this.graphics.pushMatrix();
+                this.graphics.translate(400, 80);
+                var apX = (float) Math.Round((this.graphics.mouseX - 264 - x1)/26.0);
+                var apY = (float) Math.Round((this.graphics.mouseY - 80 - y1)/26.0);
                 selectedCreature.drawBrain(font, 52, (int) apX, (int) apY);
-                popMatrix();
+                this.graphics.popMatrix();
             }
             drawPopulationGraph(x1, x2, y1, y2);
-            fill(0, 0, 0);
-            textAlign(AlignText.RIGHT);
-            textFont(font, 24);
-            text("Population: " + creatures.Count, x2 - x1 - 10, y2 - y1 - 10);
-            popMatrix();
+            this.graphics.fill(0, 0, 0);
+            this.graphics.textAlign(AlignText.RIGHT);
+            this.graphics.textFont(font, 24);
+            this.graphics.text("Population: " + creatures.Count, x2 - x1 - 10, y2 - y1 - 10);
+            this.graphics.popMatrix();
 
-            pushMatrix();
-            translate(x2, y1);
-            textAlign(AlignText.RIGHT);
-            textFont(font, 24);
-            text("Temperature", -10, 24);
-            drawThermometer(-45, 30, 20, 660, temperature, THERMOMETER_MIN, THERMOMETER_MAX, color(0, 1, 1));
-            popMatrix();
+            this.graphics.pushMatrix();
+            this.graphics.translate(x2, y1);
+            this.graphics.textAlign(AlignText.RIGHT);
+            this.graphics.textFont(font, 24);
+            this.graphics.text("Temperature", -10, 24);
+            drawThermometer(-45, 30, 20, 660, temperature, THERMOMETER_MIN, THERMOMETER_MAX, new color(0, 1, 1));
+            this.graphics.popMatrix();
 
             if (selectedCreature != null)
             {
@@ -375,8 +381,8 @@ namespace core
         private void drawPopulationGraph(float x1, float x2, float y1, float y2)
         {
             var barWidth = (x2 - x1)/POPULATION_HISTORY_LENGTH;
-            noStroke();
-            fill(0.33333f, 1, 0.6f);
+            this.graphics.noStroke();
+            this.graphics.fill(0.33333f, 1, 0.6f);
             var maxPopulation = 0;
             for (var i = 0; i < POPULATION_HISTORY_LENGTH; i++)
             {
@@ -388,7 +394,7 @@ namespace core
             for (var i = 0; i < POPULATION_HISTORY_LENGTH; i++)
             {
                 var h = (((float) populationHistory[i])/maxPopulation)*(y2 - 770);
-                rect((POPULATION_HISTORY_LENGTH - 1 - i)*barWidth, y2 - h, barWidth, h);
+                this.graphics.rect((POPULATION_HISTORY_LENGTH - 1 - i)*barWidth, y2 - h, barWidth, h);
             }
         }
 
@@ -441,25 +447,25 @@ namespace core
                 {
                     if (me == selectedCreature)
                     {
-                        if (keyPressed)
+                        if (this.graphics.keyPressed)
                         {
-                            if (key == Key.CODED)
+                            if (this.graphics.key == Key.CODED)
                             {
-                                if (keyCode == Key.UP) me.accelerate(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (keyCode == Key.DOWN) me.accelerate(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (keyCode == Key.LEFT) me.turn(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (keyCode == Key.RIGHT) me.turn(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Key.UP) me.accelerate(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Key.DOWN) me.accelerate(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Key.LEFT) me.turn(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.keyCode == Key.RIGHT) me.turn(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                             }
                             else
                             {
-                                if (key == ' ') me.eat(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (key == 'v') me.eat(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (key == 'f') me.fight(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (key == 'u') me.setHue(me.myHue + 0.02);
-                                if (key == 'j') me.setHue(me.myHue - 0.02);
+                                if (this.graphics.key == ' ') me.eat(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.key == 'v') me.eat(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.key == 'f') me.fight(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.graphics.key == 'u') me.setHue(me.myHue + 0.02);
+                                if (this.graphics.key == 'j') me.setHue(me.myHue - 0.02);
 
-                                if (key == 'i') me.setMouthHue(me.mouthHue + 0.02);
-                                if (key == 'k') me.setMouthHue(me.mouthHue - 0.02);
+                                if (this.graphics.key == 'i') me.setMouthHue(me.mouthHue + 0.02);
+                                if (this.graphics.key == 'k') me.setMouthHue(me.mouthHue - 0.02);
                                 /*if(key == 'i') me.setSaturarion(me.saturation+0.05);
               if(key == 'k') me.setSaturarion(me.saturation-0.05);
               if(key == 'o') me.setBrightness(me.brightness+0.05);
@@ -470,7 +476,7 @@ namespace core
               if(key == 's') me.setVisionDistance(me.visionDistance-0.05);
               if(key == 'a') me.setVisionAngle(me.visionAngle-0.05);
               if(key == 'd') me.setVisionAngle(me.visionAngle+0.05);*/
-                                if (key == 'b')
+                                if (this.graphics.key == 'b')
                                 {
                                     if (!wasPressingB)
                                     {
@@ -533,46 +539,46 @@ namespace core
         private void drawThermometer(float x1, float y1, float w, float h, float prog, float min, float max,
             color fillColor)
         {
-            noStroke();
-            fill(0, 0, 0.2f);
-            rect(x1, y1, w, h);
-            fill(fillColor);
+            this.graphics.noStroke();
+            this.graphics.fill(0, 0, 0.2f);
+            this.graphics.rect(x1, y1, w, h);
+            this.graphics.fill(fillColor);
             var proportionFilled = (prog - min)/(max - min);
-            rect(x1, y1 + h*(1 - proportionFilled), w, proportionFilled*h);
+            this.graphics.rect(x1, y1 + h*(1 - proportionFilled), w, proportionFilled*h);
 
             var zeroHeight = (0 - min)/(max - min);
             var zeroLineY = y1 + h*(1 - zeroHeight);
-            textAlign(AlignText.RIGHT);
-            stroke(0, 0, 1);
-            strokeWeight(3);
-            line(x1, zeroLineY, x1 + w, zeroLineY);
+            this.graphics.textAlign(AlignText.RIGHT);
+            this.graphics.stroke(0, 0, 1);
+            this.graphics.strokeWeight(3);
+            this.graphics.line(x1, zeroLineY, x1 + w, zeroLineY);
             var minY = y1 + h*(1 - (MIN_TEMPERATURE - min)/(max - min));
             var maxY = y1 + h*(1 - (MAX_TEMPERATURE - min)/(max - min));
-            fill(0, 0, 0.8f);
-            line(x1, minY, x1 + w*1.8, minY);
-            line(x1, maxY, x1 + w*1.8, maxY);
-            line(x1 + w*1.8, minY, x1 + w*1.8, maxY);
+            this.graphics.fill(0, 0, 0.8f);
+            this.graphics.line(x1, minY, x1 + w*1.8, minY);
+            this.graphics.line(x1, maxY, x1 + w*1.8, maxY);
+            this.graphics.line(x1 + w*1.8, minY, x1 + w*1.8, maxY);
 
-            fill(0, 0, 1);
-            text("Zero", x1 - 5, zeroLineY + 8);
-            text(MIN_TEMPERATURE.ToString(0, 2), x1 - 5, minY + 8);
-            text(MAX_TEMPERATURE.ToString(0, 2), x1 - 5, maxY + 8);
+            this.graphics.fill(0, 0, 1);
+            this.graphics.text("Zero", x1 - 5, zeroLineY + 8);
+            this.graphics.text(MIN_TEMPERATURE.ToString(0, 2), x1 - 5, minY + 8);
+            this.graphics.text(MAX_TEMPERATURE.ToString(0, 2), x1 - 5, maxY + 8);
         }
 
         private void drawVerticalSlider(float x1, float y1, float w, float h, float prog, color fillColor, color antiColor)
         {
-            noStroke();
-            fill(0, 0, 0.2f);
-            rect(x1, y1, w, h);
+            this.graphics.noStroke();
+            this.graphics.fill(0, 0, 0.2f);
+            this.graphics.rect(x1, y1, w, h);
             if (prog >= 0)
             {
-                fill(fillColor);
+                this.graphics.fill(fillColor);
             }
             else
             {
-                fill(antiColor);
+                this.graphics.fill(antiColor);
             }
-            rect(x1, y1 + h*(1 - prog), w, prog*h);
+            this.graphics.rect(x1, y1 + h*(1 - prog), w, prog*h);
         }
 
         public bool setMinTemperature(float temp)
@@ -638,7 +644,7 @@ namespace core
                 }
                 else
                 {
-                    creatures.Add(new Creature(Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
+                    creatures.Add(new Creature(this.graphics, Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
                         Rnd.next(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, Rnd.next(0, 1), 1, 1,
                         this, year, Rnd.next(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1, Rnd.next(0, 1)));
                 }
@@ -658,12 +664,12 @@ namespace core
 
         private void drawCreature(Creature c, float x, float y, float scale, float scaleUp)
         {
-            pushMatrix();
+            this.graphics.pushMatrix();
             var scaleIconUp = scaleUp*scale;
-            translate((float) (-c.px*scaleIconUp), (float) (-c.py*scaleIconUp));
-            translate(x, y);
+            this.graphics.translate((float) (-c.px*scaleIconUp), (float) (-c.py*scaleIconUp));
+            this.graphics.translate(x, y);
             c.drawSoftBody(scaleIconUp, 40.0f/scale, false);
-            popMatrix();
+            this.graphics.popMatrix();
         }
 
         public void prepareForFileSave(int type)
@@ -680,12 +686,12 @@ namespace core
                     fileSaveTimes[i] = year;
                     if (i < 2)
                     {
-                        saveFrame(getNextFileName(i));
+                        this.graphics.saveFrame(getNextFileName(i));
                     }
                     else
                     {
                         var data = this.toBigString();
-                        saveStrings(getNextFileName(i), data);
+                        this.graphics.saveStrings(getNextFileName(i), data);
                     }
                     fileSaveCounts[i]++;
                 }

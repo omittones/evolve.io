@@ -53,7 +53,7 @@
     <Compile Include="Creature.cs" />
     <Compile Include="EllipseMode.cs" />
     <Compile Include="EvolvioColor.cs" />
-    <Compile Include="Helpers.cs" />
+    <Compile Include="GraphicsEngine.cs" />
     <Compile Include="Key.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
@@ -61,7 +61,7 @@
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
-    <Compile Include="Mathf.cs" />
+    <Compile Include="MathEx.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="MouseEvent.cs" />
     <Compile Include="Perlin.cs" />

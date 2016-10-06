@@ -2,17 +2,18 @@ using System;
 
 namespace core
 {
-    public class Tile : Helpers
+    public class Tile
     {
         public const float FOOD_GROWTH_RATE = 1.0f;
 
-        public readonly color barrenColor = color(0, 0, 1);
-        public readonly color fertileColor = color(0, 0, 0.2);
-        public readonly color blackColor = color(0, 1, 0);
-        public readonly color waterColor = color(0, 0, 0);
-        
+        public readonly color barrenColor = new color(0, 0, 1);
+        public readonly color fertileColor = new color(0, 0, 0.2f);
+        public readonly color blackColor = new color(0, 1, 0);
+        public readonly color waterColor = new color(0, 0, 0);
+
         public readonly float fertility;
         private readonly float maxGrowthLevel = 1.0f;
+        private readonly GraphicsEngine graphics;
         private readonly int posX;
         private readonly int posY;
 
@@ -20,8 +21,9 @@ namespace core
         public float foodType;
         public float foodLevel;
 
-        public Tile(int x, int y, float maxFertility, float maxFood, float foodType)
+        public Tile(GraphicsEngine graphics, int x, int y, float maxFertility, float maxFood, float foodType)
         {
+            this.graphics = graphics;
             this.posX = x;
             this.posY = y;
             this.fertility = Math.Max(0, maxFertility);
@@ -32,26 +34,26 @@ namespace core
 
         public void drawTile(float scaleUp, bool showEnergy)
         {
-            stroke(0, 0, 0, 1);
-            strokeWeight(2);
+            this.graphics.stroke(0, 0, 0, 1);
+            this.graphics.strokeWeight(2);
             var landColor = getColor();
-            fill(landColor);
-            rect(posX*scaleUp, posY*scaleUp, scaleUp, scaleUp);
+            this.graphics.fill(landColor);
+            this.graphics.rect(posX*scaleUp, posY*scaleUp, scaleUp, scaleUp);
             if (showEnergy)
             {
-                if (brightness(landColor) >= 0.7)
+                if (this.graphics.brightness(landColor) >= 0.7)
                 {
-                    fill(0, 0, 0, 1);
+                    this.graphics.fill(0, 0, 0, 1);
                 }
                 else
                 {
-                    fill(0, 0, 1, 1);
+                    this.graphics.fill(0, 0, 1, 1);
                 }
-                textAlign(AlignText.CENTER);
-                textFont(font, 21);
-                text((100*foodLevel).ToString(0, 2) + " yums", (posX + 0.5f)*scaleUp, (posY + 0.3f)*scaleUp);
-                text("Clim: " + climateType.ToString(0, 2), (posX + 0.5f)*scaleUp, (posY + 0.6f)*scaleUp);
-                text("Food: " + foodType.ToString(0, 2), (posX + 0.5f)*scaleUp, (posY + 0.9f)*scaleUp);
+                this.graphics.textAlign(AlignText.CENTER);
+                this.graphics.textFont(this.graphics.font, 21);
+                this.graphics.text((100*foodLevel).ToString(0, 2) + " yums", (posX + 0.5f)*scaleUp, (posY + 0.3f)*scaleUp);
+                this.graphics.text("Clim: " + climateType.ToString(0, 2), (posX + 0.5f)*scaleUp, (posY + 0.6f)*scaleUp);
+                this.graphics.text("Food: " + foodType.ToString(0, 2), (posX + 0.5f)*scaleUp, (posY + 0.9f)*scaleUp);
             }
         }
 
@@ -92,7 +94,7 @@ namespace core
 
         public color getColor()
         {
-            var foodColor = color(foodType, 1, 1);
+            var foodColor = new color(foodType, 1, 1);
             if (fertility > 1)
             {
                 return waterColor;
@@ -100,30 +102,30 @@ namespace core
             if (foodLevel < maxGrowthLevel)
             {
                 return interColorFixedHue(interColor(barrenColor, fertileColor, fertility), foodColor,
-                    foodLevel/maxGrowthLevel, hue(foodColor));
+                    foodLevel/maxGrowthLevel, this.graphics.hue(foodColor));
             }
-            return interColorFixedHue(foodColor, blackColor, 1.0f - maxGrowthLevel/foodLevel, hue(foodColor));
+            return interColorFixedHue(foodColor, blackColor, 1.0f - maxGrowthLevel/foodLevel, this.graphics.hue(foodColor));
         }
 
         public color interColor(color a, color b, float x)
         {
-            var hue1 = inter(hue(a), hue(b), x);
-            var sat = inter(saturation(a), saturation(b), x);
-            var bri = inter(brightness(a), brightness(b), x); // I know it's dumb to do interpolation with HSL but oh well
-            return color(hue1, sat, bri);
+            var hue1 = inter(this.graphics.hue(a), this.graphics.hue(b), x);
+            var sat = inter(this.graphics.saturation(a), this.graphics.saturation(b), x);
+            var bri = inter(this.graphics.brightness(a), this.graphics.brightness(b), x); // I know it's dumb to do interpolation with HSL but oh well
+            return new color(hue1, sat, bri);
         }
 
         public color interColorFixedHue(color a, color b, float x, float hue)
         {
-            var satB = saturation(b);
-            if (brightness(b) == 0)
+            var satB = this.graphics.saturation(b);
+            if (this.graphics.brightness(b) == 0)
             {
                 // I want black to be calculated as 100% saturation
                 satB = 1;
             }
-            var sat = inter(saturation(a), satB, x);
-            var bri = inter(brightness(a), brightness(b), x); // I know it's dumb to do interpolation with HSL but oh well
-            return color(hue, sat, bri);
+            var sat = inter(this.graphics.saturation(a), satB, x);
+            var bri = inter(this.graphics.brightness(a), this.graphics.brightness(b), x); // I know it's dumb to do interpolation with HSL but oh well
+            return new color(hue, sat, bri);
         }
 
         public float inter(float a, float b, float x)

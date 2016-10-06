@@ -4,18 +4,18 @@ namespace core
     {
         public static float Noise(float x)
         {
-            var X = MathF.FloorToInt(x) & 0xff;
-            x -= MathF.Floor(x);
+            var X = MathEx.FloorToInt(x) & 0xff;
+            x -= MathEx.Floor(x);
             var u = Fade(x);
             return Lerp(u, Grad(perm[X], x), Grad(perm[X + 1], x - 1))*2;
         }
 
         public static float Noise(float x, float y)
         {
-            var X = MathF.FloorToInt(x) & 0xff;
-            var Y = MathF.FloorToInt(y) & 0xff;
-            x -= MathF.Floor(x);
-            y -= MathF.Floor(y);
+            var X = MathEx.FloorToInt(x) & 0xff;
+            var Y = MathEx.FloorToInt(y) & 0xff;
+            x -= MathEx.Floor(x);
+            y -= MathEx.Floor(y);
             var u = Fade(x);
             var v = Fade(y);
             var A = (perm[X] + Y) & 0xff;
@@ -26,12 +26,12 @@ namespace core
 
         public static float Noise(float x, float y, float z)
         {
-            var X = MathF.FloorToInt(x) & 0xff;
-            var Y = MathF.FloorToInt(y) & 0xff;
-            var Z = MathF.FloorToInt(z) & 0xff;
-            x -= MathF.Floor(x);
-            y -= MathF.Floor(y);
-            z -= MathF.Floor(z);
+            var X = MathEx.FloorToInt(x) & 0xff;
+            var Y = MathEx.FloorToInt(y) & 0xff;
+            var Z = MathEx.FloorToInt(z) & 0xff;
+            x -= MathEx.Floor(x);
+            y -= MathEx.Floor(y);
+            z -= MathEx.Floor(z);
             var u = Fade(x);
             var v = Fade(y);
             var w = Fade(z);
@@ -88,7 +88,7 @@ namespace core
             return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
         }
 
-        private static int[] perm =
+        private static readonly int[] perm =
         {
             151, 160, 137, 91, 90, 15,
             131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23,

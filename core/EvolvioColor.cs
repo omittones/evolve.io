@@ -2,7 +2,7 @@ using System;
 
 namespace core
 {
-    public class EvolvioColor : Helpers
+    public class EvolvioColor
     {
         public const double TIME_STEP = 0.001;
         public const float GROSS_OVERALL_SCALE_FACTOR = ((float) WINDOW_HEIGHT)/BOARD_HEIGHT/SCALE_TO_FIX_BUG;
@@ -29,13 +29,16 @@ namespace core
         private float zoom = 1;
         private int dragging; // 0 = no drag, 1 = drag screen, 2 and 3 are dragging temp extremes.
         private PFont myFont;
+        private GraphicsEngine graphics;
 
-        public void setup()
+        public void setup(GraphicsEngine graphics)
         {
-            colorMode(ColorMode.HSB, 1.0f);
-            myFont = loadFont("Jygquip1-48.vlw");
-            size(WINDOW_WIDTH, WINDOW_HEIGHT);
-            evoBoard = new Board(BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE, MIN_TEMPERATURE, MAX_TEMPERATURE,
+            this.graphics = graphics;
+            this.graphics.colorMode(ColorMode.HSB, 1.0f);
+            myFont = this.graphics.loadFont("Jygquip1-48.vlw");
+            this.graphics.size(WINDOW_WIDTH, WINDOW_HEIGHT);
+            evoBoard = new Board(this.graphics, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE, MIN_TEMPERATURE,
+                MAX_TEMPERATURE,
                 ROCKS_TO_ADD, CREATURE_MINIMUM, SEED, INITIAL_FILE_NAME, TIME_STEP);
             resetZoom();
         }
@@ -46,26 +49,26 @@ namespace core
             {
                 evoBoard.iterate(TIME_STEP);
             }
-            if (MathF.Distance(prevMouseX, prevMouseY, mouseX, mouseY) > 5)
+            if (MathEx.Distance(prevMouseX, prevMouseY, this.graphics.mouseX, this.graphics.mouseY) > 5)
             {
                 draggedFar = true;
             }
             if (dragging == 1)
             {
-                cameraX -= toWorldXCoordinate(mouseX, mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
-                cameraY -= toWorldYCoordinate(mouseX, mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
+                cameraX -= toWorldXCoordinate(this.graphics.mouseX, this.graphics.mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
+                cameraY -= toWorldYCoordinate(this.graphics.mouseX, this.graphics.mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
             }
             else if (dragging == 2)
             {
                 //UGLY UGLY CODE.  Do not look at this
-                if (evoBoard.setMinTemperature(1.0f - (mouseY - 30)/660.0f))
+                if (evoBoard.setMinTemperature(1.0f - (this.graphics.mouseY - 30)/660.0f))
                 {
                     dragging = 3;
                 }
             }
             else if (dragging == 3)
             {
-                if (evoBoard.setMaxTemperature(1.0f - (mouseY - 30)/660.0f))
+                if (evoBoard.setMaxTemperature(1.0f - (this.graphics.mouseY - 30)/660.0f))
                 {
                     dragging = 2;
                 }
@@ -80,24 +83,24 @@ namespace core
             {
                 cameraR = 0;
             }
-            pushMatrix();
-            scale(GROSS_OVERALL_SCALE_FACTOR);
+            this.graphics.pushMatrix();
+            this.graphics.scale(GROSS_OVERALL_SCALE_FACTOR);
             evoBoard.drawBlankBoard(SCALE_TO_FIX_BUG);
-            translate(BOARD_WIDTH*0.5f*SCALE_TO_FIX_BUG, BOARD_HEIGHT*0.5f*SCALE_TO_FIX_BUG);
-            scale(zoom);
+            this.graphics.translate(BOARD_WIDTH*0.5f*SCALE_TO_FIX_BUG, BOARD_HEIGHT*0.5f*SCALE_TO_FIX_BUG);
+            this.graphics.scale(zoom);
             if (evoBoard.userControl && evoBoard.selectedCreature != null)
             {
-                rotate(cameraR);
+                this.graphics.rotate(cameraR);
             }
-            translate(-cameraX*SCALE_TO_FIX_BUG, -cameraY*SCALE_TO_FIX_BUG);
-            evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
-                (int) toWorldYCoordinate(mouseX, mouseY));
-            popMatrix();
+            this.graphics.translate(-cameraX*SCALE_TO_FIX_BUG, -cameraY*SCALE_TO_FIX_BUG);
+            evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(this.graphics.mouseX, this.graphics.mouseY),
+                (int) toWorldYCoordinate(this.graphics.mouseX, this.graphics.mouseY));
+            this.graphics.popMatrix();
             evoBoard.drawUI(SCALE_TO_FIX_BUG, TIME_STEP, WINDOW_HEIGHT, 0, WINDOW_WIDTH, WINDOW_HEIGHT, myFont);
 
             evoBoard.fileSave();
-            prevMouseX = mouseX;
-            prevMouseY = mouseY;
+            prevMouseX = this.graphics.mouseX;
+            prevMouseY = this.graphics.mouseY;
         }
 
         public void mouseWheel(MouseEvent @event)
@@ -105,44 +108,44 @@ namespace core
             float delta = @event.getCount();
             if (delta >= 0.5)
             {
-                setZoom(zoom*0.90909f, mouseX, mouseY);
+                setZoom(zoom*0.90909f, this.graphics.mouseX, this.graphics.mouseY);
             }
             else if (delta <= -0.5)
             {
-                setZoom(zoom*1.1f, mouseX, mouseY);
+                setZoom(zoom*1.1f, this.graphics.mouseX, this.graphics.mouseY);
             }
         }
 
         public void mousePressed()
         {
-            if (mouseX < WINDOW_HEIGHT)
+            if (this.graphics.mouseX < WINDOW_HEIGHT)
             {
                 dragging = 1;
             }
             else
             {
-                if (Math.Abs(mouseX - (WINDOW_HEIGHT + 65)) <= 60 && Math.Abs(mouseY - 147) <= 60 &&
+                if (Math.Abs(this.graphics.mouseX - (WINDOW_HEIGHT + 65)) <= 60 && Math.Abs(this.graphics.mouseY - 147) <= 60 &&
                     evoBoard.selectedCreature != null)
                 {
                     cameraX = (float) evoBoard.selectedCreature.px;
                     cameraY = (float) evoBoard.selectedCreature.py;
                     zoom = 4;
                 }
-                else if (mouseY >= 95 && mouseY < 135 && evoBoard.selectedCreature == null)
+                else if (this.graphics.mouseY >= 95 && this.graphics.mouseY < 135 && evoBoard.selectedCreature == null)
                 {
-                    if (mouseX >= WINDOW_HEIGHT + 10 && mouseX < WINDOW_HEIGHT + 230)
+                    if (this.graphics.mouseX >= WINDOW_HEIGHT + 10 && this.graphics.mouseX < WINDOW_HEIGHT + 230)
                     {
                         resetZoom();
                     }
-                    else if (mouseX >= WINDOW_HEIGHT + 240 && mouseX < WINDOW_HEIGHT + 460)
+                    else if (this.graphics.mouseX >= WINDOW_HEIGHT + 240 && this.graphics.mouseX < WINDOW_HEIGHT + 460)
                     {
                         evoBoard.creatureRankMetric = (evoBoard.creatureRankMetric + 1)%8;
                     }
                 }
-                else if (mouseY >= 570)
+                else if (this.graphics.mouseY >= 570)
                 {
-                    float x = (mouseX - (WINDOW_HEIGHT + 10));
-                    float y = (mouseY - 570);
+                    float x = (this.graphics.mouseX - (WINDOW_HEIGHT + 10));
+                    float y = (this.graphics.mouseY - 570);
                     var clickedOnLeft = (x%230 < 110);
                     if (x >= 0 && x < 2*230 && y >= 0 && y < 4*50 && x%230 < 220 && y%50 < 40)
                     {
@@ -229,9 +232,9 @@ namespace core
                         }
                     }
                 }
-                else if (mouseX >= screenHeight + 10 && mouseX < screenWidth - 50 && evoBoard.selectedCreature == null)
+                else if (this.graphics.mouseX >= this.graphics.screenHeight + 10 && this.graphics.mouseX < this.graphics.screenWidth - 50 && evoBoard.selectedCreature == null)
                 {
-                    var listIndex = (mouseY - 150)/70;
+                    var listIndex = (this.graphics.mouseY - 150)/70;
                     if (listIndex >= 0 && listIndex < Board.LIST_SLOTS)
                     {
                         evoBoard.selectedCreature = evoBoard.list[listIndex];
@@ -240,9 +243,9 @@ namespace core
                         zoom = 4;
                     }
                 }
-                if (mouseX >= screenWidth - 50)
+                if (this.graphics.mouseX >= this.graphics.screenWidth - 50)
                 {
-                    var toClickTemp = (mouseY - 30)/660.0f;
+                    var toClickTemp = (this.graphics.mouseY - 30)/660.0f;
                     var lowTemp = 1.0f - evoBoard.getLowTempProportion();
                     var highTemp = 1.0f - evoBoard.getHighTempProportion();
                     if (Math.Abs(toClickTemp - lowTemp) < Math.Abs(toClickTemp - highTemp))
@@ -262,12 +265,12 @@ namespace core
         {
             if (!draggedFar)
             {
-                if (mouseX < WINDOW_HEIGHT)
+                if (this.graphics.mouseX < WINDOW_HEIGHT)
                 {
                     // DO NOT LOOK AT THIS CODE EITHER it is bad
                     dragging = 1;
-                    var mX = toWorldXCoordinate(mouseX, mouseY);
-                    var mY = toWorldYCoordinate(mouseX, mouseY);
+                    var mX = toWorldXCoordinate(this.graphics.mouseX, this.graphics.mouseY);
+                    var mY = toWorldYCoordinate(this.graphics.mouseX, this.graphics.mouseY);
                     var x = (int) (Math.Floor(mX));
                     var y = (int) (Math.Floor(mY));
                     evoBoard.unselect();
@@ -279,7 +282,7 @@ namespace core
                             var body = evoBoard.softBodiesInPositions[x, y][i];
                             if (body.isCreature)
                             {
-                                var distance = MathF.Distance(mX, mY, (float) body.px, (float) body.py);
+                                var distance = MathEx.Distance(mX, mY, (float) body.px, (float) body.py);
                                 if (distance <= body.getRadius())
                                 {
                                     evoBoard.selectedCreature = (Creature) body;
@@ -318,7 +321,7 @@ namespace core
         {
             var w = WINDOW_HEIGHT/2.0f;
             var angle = (float) Math.Atan2(y - w, x - w);
-            var dist2 = MathF.Distance(w, w, x, y);
+            var dist2 = MathEx.Distance(w, w, x, y);
             return cameraX + grossify((float) Math.Cos(angle - cameraR)*dist2 + w, BOARD_WIDTH)/zoom;
         }
 
@@ -326,7 +329,7 @@ namespace core
         {
             var w = WINDOW_HEIGHT/2.0f;
             var angle = (float) Math.Atan2(y - w, x - w);
-            var dist2 = MathF.Distance(w, w, x, y);
+            var dist2 = MathEx.Distance(w, w, x, y);
             return cameraY + grossify((float) Math.Sin(angle - cameraR)*dist2 + w, BOARD_HEIGHT)/zoom;
         }
     }

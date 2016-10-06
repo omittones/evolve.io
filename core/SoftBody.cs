@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace core
 {
-    public class SoftBody : Helpers
+    public class SoftBody
     {
         public const float ENERGY_DENSITY = (float) (1.0/(0.2*0.2*Math.PI));
 
@@ -35,9 +35,15 @@ namespace core
         public Board board;
 
 
-        public SoftBody(double tpx, double tpy, double tvx, double tvy, double tenergy, double tdensity,
+        protected GraphicsEngine graphics;
+
+        public SoftBody(
+            GraphicsEngine graphics,
+            double tpx, double tpy, double tvx, double tvy, double tenergy, double tdensity,
             double thue, double tsaturation, double tbrightness, Board tb, double bt)
         {
+            this.graphics = graphics;
+
             px = tpx;
             py = tpy;
             vx = tvx;
@@ -137,7 +143,7 @@ namespace core
             for (var i = 0; i < colliders.Count; i++)
             {
                 var collider = colliders[i];
-                var distance = MathF.Distance((float) px, (float) py, (float) collider.px, (float) collider.py);
+                var distance = MathEx.Distance((float) px, (float) py, (float) collider.px, (float) collider.py);
                 var combinedRadius = getRadius() + collider.getRadius();
                 if (distance < combinedRadius)
                 {
@@ -161,11 +167,11 @@ namespace core
         public void drawSoftBody(float scaleUp)
         {
             var radius = getRadius();
-            stroke(0);
-            strokeWeight(2);
-            fill((float) myHue, (float) mySaturation, (float) myBrightness);
-            this.ellipseMode(EllipseMode.RADIUS);
-            this.ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (radius*scaleUp), (float) (radius*scaleUp));
+            this.graphics.stroke(0);
+            this.graphics.strokeWeight(2);
+            this.graphics.fill((float) myHue, (float) mySaturation, (float) myBrightness);
+            this.graphics.ellipseMode(EllipseMode.RADIUS);
+            this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (radius*scaleUp), (float) (radius*scaleUp));
         }
 
         public double getRadius()

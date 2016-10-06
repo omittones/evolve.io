@@ -17,7 +17,7 @@ namespace core
             base.OnLoad(e);
 
             this.app = new EvolvioColor();
-            this.app.setup();
+            this.app.setup(new GraphicsEngine());
 
             Application.Idle += ExecuteStep;
         }

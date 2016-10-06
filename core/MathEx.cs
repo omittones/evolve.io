@@ -2,7 +2,7 @@ using System;
 
 namespace core
 {
-    public static class MathF
+    public static class MathEx
     {
         public static int FloorToInt(float x)
         {

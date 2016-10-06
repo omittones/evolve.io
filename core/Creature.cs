@@ -31,27 +31,29 @@ namespace core
         public string parents;
         public int gen;
         public int id;
-        private double[] previousEnergy = new double[ENERGY_HISTORY_LENGTH];
+        private readonly double[] previousEnergy = new double[ENERGY_HISTORY_LENGTH];
         private double vr;
         public double rotation;
-        private Axon[,,] axons;
-        private double[,] neurons;
+        private readonly Axon[,,] axons;
+        private readonly double[,] neurons;
 
         public float preferredRank = 8;
-        private static double[] visionAngles = {0, -0.4, 0.4};
-        private static double[] visionDistances = {0, 1.42, 1.42};
-        private double[] visionOccludedX = new double[visionAngles.Length];
-        private double[] visionOccludedY = new double[visionAngles.Length];
-        private double[] visionResults = new double[9];
-        private int MEMORY_COUNT = 1;
-        private double[] memories;
+        private static readonly double[] visionAngles = {0, -0.4, 0.4};
+        private static readonly double[] visionDistances = {0, 1.42, 1.42};
+        private readonly double[] visionOccludedX = new double[visionAngles.Length];
+        private readonly double[] visionOccludedY = new double[visionAngles.Length];
+        private readonly double[] visionResults = new double[9];
+        private readonly int MEMORY_COUNT = 1;
+        private readonly double[] memories;
         public double mouthHue;
 
-        public Creature(double tpx, double tpy, double tvx, double tvy, double tenergy,
+        public Creature(
+            GraphicsEngine graphics,
+            double tpx, double tpy, double tvx, double tvy, double tenergy,
             double tdensity, double thue, double tsaturation, double tbrightness, Board tb, double bt,
             double rot, double tvr, string tname, string tparents, bool mutateName1,
             Axon[,,] tbrain, double[,] tneurons, int tgen, double tmouthHue)
-            : base(tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness, tb, bt)
+            : base(graphics, tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness, tb, bt)
         {
 
             if (tbrain == null)
@@ -136,15 +138,15 @@ namespace core
         public void drawBrain(PFont font, float scaleUp, int mX, int mY)
         {
             const float neuronSize = 0.4f;
-            noStroke();
-            fill(0, 0, 0.4f);
-            rect((-1.7f - neuronSize)*scaleUp, -neuronSize*scaleUp, (2.4f + BRAIN_WIDTH + neuronSize*2)*scaleUp,
+            this.graphics.noStroke();
+            this.graphics.fill(0, 0, 0.4f);
+            this.graphics.rect((-1.7f - neuronSize)*scaleUp, -neuronSize*scaleUp, (2.4f + BRAIN_WIDTH + neuronSize*2)*scaleUp,
                 (BRAIN_HEIGHT + neuronSize*2)*scaleUp);
 
-            ellipseMode(EllipseMode.RADIUS);
-            strokeWeight(2);
-            textFont(font, 0.58f*scaleUp);
-            fill(0, 0, 1);
+            this.graphics.ellipseMode(EllipseMode.RADIUS);
+            this.graphics.strokeWeight(2);
+            this.graphics.textFont(font, 0.58f*scaleUp);
+            this.graphics.fill(0, 0, 1);
             string[] inputLabels =
             {
                 "0Hue", "0Sat", "0Bri", "1Hue",
@@ -157,22 +159,22 @@ namespace core
             };
             for (var y = 0; y < BRAIN_HEIGHT; y++)
             {
-                textAlign(AlignText.RIGHT);
-                text(inputLabels[y], (-neuronSize - 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
-                textAlign(AlignText.LEFT);
-                text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
+                this.graphics.textAlign(AlignText.RIGHT);
+                this.graphics.text(inputLabels[y], (-neuronSize - 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
+                this.graphics.textAlign(AlignText.LEFT);
+                this.graphics.text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
             }
-            textAlign(AlignText.CENTER);
+            this.graphics.textAlign(AlignText.CENTER);
             for (var x = 0; x < BRAIN_WIDTH; x++)
             {
                 for (var y = 0; y < BRAIN_HEIGHT; y++)
                 {
-                    noStroke();
+                    this.graphics.noStroke();
                     var val = neurons[x, y];
-                    fill(neuronFillColor(val));
-                    ellipse(x*scaleUp, y*scaleUp, neuronSize*scaleUp, neuronSize*scaleUp);
-                    fill(neuronTextColor(val));
-                    text(((float) val).ToString(0, 1), x*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
+                    this.graphics.fill(neuronFillColor(val));
+                    this.graphics.ellipse(x*scaleUp, y*scaleUp, neuronSize*scaleUp, neuronSize*scaleUp);
+                    this.graphics.fill(neuronTextColor(val));
+                    this.graphics.text(((float) val).ToString(0, 1), x*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
                 }
             }
             if (mX >= 0 && mX < BRAIN_WIDTH && mY >= 0 && mY < BRAIN_HEIGHT)
@@ -193,9 +195,9 @@ namespace core
 
         public void drawAxon(int x1, int y1, int x2, int y2, float scaleUp)
         {
-            stroke(neuronFillColor(axons[x1, y1, y2].weight*neurons[x1, y1]));
+            this.graphics.stroke(neuronFillColor(axons[x1, y1, y2].weight*neurons[x1, y1]));
 
-            line(x1*scaleUp, y1*scaleUp, x2*scaleUp, y2*scaleUp);
+            this.graphics.line(x1*scaleUp, y1*scaleUp, x2*scaleUp, y2*scaleUp);
         }
 
         public void useBrain(double timeStep, bool useOutput)
@@ -257,92 +259,92 @@ namespace core
         {
             if (d >= 0)
             {
-                return color(0, 0, 1, (float) (d));
+                return new color(0, 0, 1, (float) (d));
             }
-            return color(0, 0, 0, (float) (-d));
+            return new color(0, 0, 0, (float) (-d));
         }
 
         public color neuronTextColor(double d)
         {
             if (d >= 0)
             {
-                return color(0, 0, 0);
+                return new color(0, 0, 0);
             }
-            return color(0, 0, 1);
+            return new color(0, 0, 1);
         }
 
         public void drawSoftBody(float scaleUp, float camZoom, bool showVision)
         {
-            ellipseMode(EllipseMode.RADIUS);
+            this.graphics.ellipseMode(EllipseMode.RADIUS);
             var radius = getRadius();
             if (showVision)
             {
                 for (var i = 0; i < visionAngles.Length; i++)
                 {
-                    var visionUIcolor = color(0, 0, 1);
+                    var visionUIcolor = new color(0, 0, 1);
                     if (visionResults[i*3 + 2] > BRIGHTNESS_THRESHOLD)
                     {
-                        visionUIcolor = color(0, 0, 0);
+                        visionUIcolor = new color(0, 0, 0);
                     }
-                    stroke(visionUIcolor);
-                    strokeWeight(2);
+                    this.graphics.stroke(visionUIcolor);
+                    this.graphics.strokeWeight(2);
                     var endX = (float) getVisionEndX(i);
                     var endY = (float) getVisionEndY(i);
-                    line((float) (px*scaleUp), (float) (py*scaleUp), endX*scaleUp, endY*scaleUp);
-                    noStroke();
-                    fill(visionUIcolor);
-                    ellipse((float) (visionOccludedX[i]*scaleUp), (float) (visionOccludedY[i]*scaleUp),
+                    this.graphics.line((float) (px*scaleUp), (float) (py*scaleUp), endX*scaleUp, endY*scaleUp);
+                    this.graphics.noStroke();
+                    this.graphics.fill(visionUIcolor);
+                    this.graphics.ellipse((float) (visionOccludedX[i]*scaleUp), (float) (visionOccludedY[i]*scaleUp),
                         2*CROSS_SIZE*scaleUp, 2*CROSS_SIZE*scaleUp);
-                    stroke((float) (visionResults[i*3]), (float) (visionResults[i*3 + 1]),
+                    this.graphics.stroke((float) (visionResults[i*3]), (float) (visionResults[i*3 + 1]),
                         (float) (visionResults[i*3 + 2]));
-                    strokeWeight(2);
-                    line((float) ((visionOccludedX[i] - CROSS_SIZE)*scaleUp),
+                    this.graphics.strokeWeight(2);
+                    this.graphics.line((float) ((visionOccludedX[i] - CROSS_SIZE)*scaleUp),
                         (float) ((visionOccludedY[i] - CROSS_SIZE)*scaleUp),
                         (float) ((visionOccludedX[i] + CROSS_SIZE)*scaleUp),
                         (float) ((visionOccludedY[i] + CROSS_SIZE)*scaleUp));
-                    line((float) ((visionOccludedX[i] - CROSS_SIZE)*scaleUp),
+                    this.graphics.line((float) ((visionOccludedX[i] - CROSS_SIZE)*scaleUp),
                         (float) ((visionOccludedY[i] + CROSS_SIZE)*scaleUp),
                         (float) ((visionOccludedX[i] + CROSS_SIZE)*scaleUp),
                         (float) ((visionOccludedY[i] - CROSS_SIZE)*scaleUp));
                 }
             }
-            noStroke();
+            this.graphics.noStroke();
             if (fightLevel > 0)
             {
-                fill(0, 1, 1, (float) (fightLevel*0.8));
-                ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (FIGHT_RANGE*radius*scaleUp),
+                this.graphics.fill(0, 1, 1, (float) (fightLevel*0.8));
+                this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (FIGHT_RANGE*radius*scaleUp),
                     (float) (FIGHT_RANGE*radius*scaleUp));
             }
-            strokeWeight(2);
-            stroke(0, 0, 1);
-            fill(0, 0, 1);
+            this.graphics.strokeWeight(2);
+            this.graphics.stroke(0, 0, 1);
+            this.graphics.fill(0, 0, 1);
             if (this == board.selectedCreature)
             {
-                ellipse((float) (px*scaleUp), (float) (py*scaleUp),
+                this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp),
                     (float) (radius*scaleUp + 1 + 75.0/camZoom), (float) (radius*scaleUp + 1 + 75.0/camZoom));
             }
             base.drawSoftBody(scaleUp);
-            noFill();
-            strokeWeight(2);
-            stroke(0, 0, 1);
-            ellipseMode(EllipseMode.RADIUS);
-            ellipse((float) (px*scaleUp), (float) (py*scaleUp),
+            this.graphics.noFill();
+            this.graphics.strokeWeight(2);
+            this.graphics.stroke(0, 0, 1);
+            this.graphics.ellipseMode(EllipseMode.RADIUS);
+            this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp),
                 Board.MINIMUM_SURVIVABLE_SIZE*scaleUp, Board.MINIMUM_SURVIVABLE_SIZE*scaleUp);
-            pushMatrix();
-            translate((float) (px*scaleUp), (float) (py*scaleUp));
-            scale((float) radius);
-            rotate((float) rotation);
-            strokeWeight((float) (2.0/radius));
-            stroke(0, 0, 0);
-            fill((float) mouthHue, 1.0f, 1.0f);
-            ellipse(0.6f*scaleUp, 0, 0.37f*scaleUp, 0.37f*scaleUp);
-            popMatrix();
+            this.graphics.pushMatrix();
+            this.graphics.translate((float) (px*scaleUp), (float) (py*scaleUp));
+            this.graphics.scale((float) radius);
+            this.graphics.rotate((float) rotation);
+            this.graphics.strokeWeight((float) (2.0/radius));
+            this.graphics.stroke(0, 0, 0);
+            this.graphics.fill((float) mouthHue, 1.0f, 1.0f);
+            this.graphics.ellipse(0.6f*scaleUp, 0, 0.37f*scaleUp, 0.37f*scaleUp);
+            this.graphics.popMatrix();
             if (showVision)
             {
-                fill(0, 0, 1);
-                textFont(font, 0.3f*scaleUp);
-                textAlign(AlignText.CENTER);
-                text(getCreatureName(), (float) (px*scaleUp), (float) ((py - getRadius()*1.4)*scaleUp));
+                this.graphics.fill(0, 0, 1);
+                this.graphics.textFont(this.graphics.font, 0.3f*scaleUp);
+                this.graphics.textAlign(AlignText.CENTER);
+                this.graphics.text(getCreatureName(), (float) (px*scaleUp), (float) ((py - getRadius()*1.4)*scaleUp));
             }
         }
 
@@ -377,7 +379,7 @@ namespace core
             double radius = (float) getRadius();
             double choiceX = 0;
             double choiceY = 0;
-            while (MathF.Distance((float) px, (float) py, (float) choiceX, (float) choiceY) > radius)
+            while (MathEx.Distance((float) px, (float) py, (float) choiceX, (float) choiceY) > radius)
             {
                 choiceX = (Rnd.next()*2*radius - radius) + px;
                 choiceY = (Rnd.next()*2*radius - radius) + py;
@@ -431,7 +433,7 @@ namespace core
                     var collider = colliders[i];
                     if (collider.isCreature)
                     {
-                        var distance = MathF.Distance((float) px, (float) py, (float) collider.px, (float) collider.py);
+                        var distance = MathEx.Distance((float) px, (float) py, (float) collider.px, (float) collider.py);
                         var combinedRadius = getRadius()*FIGHT_RANGE + collider.getRadius();
                         if (distance < combinedRadius)
                         {
@@ -478,9 +480,9 @@ namespace core
                 visionOccludedX[k] = endX;
                 visionOccludedY[k] = endY;
                 var c = getColorAt(endX, endY);
-                visionResults[k*3] = hue(c);
-                visionResults[k*3 + 1] = saturation(c);
-                visionResults[k*3 + 2] = brightness(c);
+                visionResults[k*3] = this.graphics.hue(c);
+                visionResults[k*3 + 1] = this.graphics.saturation(c);
+                visionResults[k*3 + 2] = this.graphics.brightness(c);
 
                 var prevTileX = -1;
                 var prevTileY = -1;
@@ -600,7 +602,7 @@ namespace core
                     if (possibleParent.isCreature && ((Creature) possibleParent).neurons[BRAIN_WIDTH - 1, 9] > -1)
                     {
                         // Must be a WILLING creature to also give birth.
-                        var distance = MathF.Distance((float) px, (float) py, (float) possibleParent.px, (float) possibleParent.py);
+                        var distance = MathEx.Distance((float) px, (float) py, (float) possibleParent.px, (float) possibleParent.py);
                         var combinedRadius = getRadius()*FIGHT_RANGE + possibleParent.getRadius();
                         if (distance < combinedRadius)
                         {
@@ -612,7 +614,8 @@ namespace core
                 if (availableEnergy > babySize)
                 {
                     double newPX = Rnd.next(-0.01, 0.01);
-                    double newPY = Rnd.next(-0.01, 0.01); //To avoid landing directly on parents, resulting in division by 0)
+                    double newPY = Rnd.next(-0.01, 0.01);
+                        //To avoid landing directly on parents, resulting in division by 0)
                     double newHue = 0;
                     double newSaturation = 0;
                     double newBrightness = 0;
@@ -630,7 +633,8 @@ namespace core
                             {
                                 var axonAngle =
                                     (float)
-                                        (Math.Atan2((y + z)/2.0 - BRAIN_HEIGHT/2.0, x - BRAIN_WIDTH/2)/(2*Math.PI) + Math.PI);
+                                        (Math.Atan2((y + z)/2.0 - BRAIN_HEIGHT/2.0, x - BRAIN_WIDTH/2)/(2*Math.PI) +
+                                         Math.PI);
                                 var parentForAxon =
                                     parents[((int) (((axonAngle + randomParentRotation)%1.0)*parentsTotal))];
                                 newBrain[x, y, z] = parentForAxon.axons[x, y, z].mutateAxon();
@@ -667,8 +671,9 @@ namespace core
                     }
                     newSaturation = 1;
                     newBrightness = 1;
-                    board.creatures.Add(new Creature(newPX, newPY, 0, 0,
-                        babySize, density, newHue, newSaturation, newBrightness, board, board.year, Rnd.next(0, 2*Math.PI), 0,
+                    board.creatures.Add(new Creature(this.graphics, newPX, newPY, 0, 0,
+                        babySize, density, newHue, newSaturation, newBrightness, board, board.year,
+                        Rnd.next(0, 2*Math.PI), 0,
                         stitchName(parentNames), andifyParents(parentNames), true,
                         newBrain, newNeurons, highestGen + 1, newMouthHue));
                 }
