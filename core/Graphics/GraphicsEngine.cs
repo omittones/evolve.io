@@ -104,10 +104,6 @@ namespace core.Graphics
             this.fillDrawer.StrokePen.Width = 1;
         }
 
-        public void size(int width, int height)
-        {
-        }
-
         public void colorMode(ColorMode mode, float gamma)
         {
         }
@@ -161,6 +157,7 @@ namespace core.Graphics
 
         public void ellipse(float a, float b, float c = 0, float d = 0)
         {
+            this.drawer.Ellipse(a, b, c, d);
         }
 
         public void line(double x1, double y1, double x2, double y2)
@@ -185,15 +182,19 @@ namespace core.Graphics
 
         public void text(string text, float x1, float y1, float x2, float y2)
         {
+            this.drawer.Text(text, x1, y1, x2, y2);
         }
 
         public float textWidth(string width)
         {
-            return 0;
+            return this.engine.MeasureString(width,
+                this.normalDrawer.Font).Width;
         }
 
         public void textFont(PFont font, float size)
         {
+            this.normalDrawer.Font = new Font(this.normalDrawer.Font.FontFamily, size, GraphicsUnit.Pixel);
+            this.fillDrawer.Font = this.normalDrawer.Font;
         }
     }
 }

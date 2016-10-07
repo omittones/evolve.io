@@ -34,7 +34,7 @@ namespace core
             // 
             // Main
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1082, 666);
             this.Name = "Main";
             this.Text = "Evolv.io";

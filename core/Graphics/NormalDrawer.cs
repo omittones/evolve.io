@@ -32,7 +32,12 @@ namespace core.Graphics
 
         public void Text(string text, float x1, float y1, float x2, float y2)
         {
-            this.engine.DrawString(text, this.Font, this.StrokePen.Brush, RectangleF.FromLTRB(x1, y1, x2, y2));
+            this.engine.DrawString(text, this.Font, this.StrokePen.Brush, new RectangleF(x1, y1, x2, y2));
+        }
+
+        public void Ellipse(float x, float y, float width, float height)
+        {
+            this.engine.DrawEllipse(this.StrokePen, x, y, width, height);
         }
     }
 }

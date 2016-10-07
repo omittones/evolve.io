@@ -795,7 +795,7 @@ namespace core
 
         public string capitalize(string n)
         {
-            return n.Substr(0, 1).ToUpper() + n.Substr(1, n.Length);
+            return n.Substring(0, 1).ToUpper() + n.Substr(1, n.Length);
         }
 
         public bool isVowel(char a)

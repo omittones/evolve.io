@@ -27,12 +27,17 @@ namespace core.Graphics
 
         public void Text(string text, float x, float y)
         {
-            this.engine.DrawString(text, this.Font, new SolidBrush(FillColor), x, y);
+            this.engine.DrawString(text, this.Font, new SolidBrush(this.FillColor), x, y);
         }
 
         public void Text(string text, float x1, float y1, float x2, float y2)
         {
-            this.engine.DrawString(text, this.Font, new SolidBrush(FillColor), RectangleF.FromLTRB(x1, y1, x2, y2));
+            this.engine.DrawString(text, this.Font, new SolidBrush(this.FillColor), new RectangleF(x1, y1, x2, y2));
+        }
+
+        public void Ellipse(float x, float y, float width, float height)
+        {
+            this.engine.FillEllipse(new SolidBrush(FillColor), x, y, width, height);
         }
     }
 }
