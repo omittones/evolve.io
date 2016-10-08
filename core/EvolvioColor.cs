@@ -15,8 +15,8 @@ namespace core
         public const float MIN_TEMPERATURE = -0.5f;
         public const float NOISE_STEP_SIZE = 0.1f;
         public const float SCALE_TO_FIX_BUG = 100;
-        public const int BOARD_HEIGHT = 100;
-        public const int BOARD_WIDTH = 100;
+        public const int BOARD_HEIGHT = 50;
+        public const int BOARD_WIDTH = 50;
 
         private int windowWidth;
         private int windowHeight;
@@ -120,14 +120,15 @@ namespace core
 
         public void handleMouseWheel(MouseEvent @event)
         {
-            float delta = @event.Count();
-            if (delta >= 0.5)
+            const float step = 0.01f;
+            var delta = @event.Count()/120f;
+            if (delta > 0)
             {
-                setZoom(zoom*0.90909f, this.input.MouseX, this.input.MouseY);
+                setZoom(zoom*(1 - step), this.input.MouseX, this.input.MouseY);
             }
-            else if (delta <= -0.5)
+            else if (delta < 0)
             {
-                setZoom(zoom*1.1f, this.input.MouseX, this.input.MouseY);
+                setZoom(zoom*(1 + step), this.input.MouseX, this.input.MouseY);
             }
         }
 
@@ -251,10 +252,11 @@ namespace core
                 else if (this.input.MouseX >= this.graphics.screenHeight + 10 &&
                          this.input.MouseX < this.graphics.screenWidth - 50 && evoBoard.selectedCreature == null)
                 {
+                    var top = evoBoard.getCreaturesOrderdByCriteria();
                     var listIndex = (this.input.MouseY - 150)/70;
-                    if (listIndex >= 0 && listIndex < evoBoard.list.Length)
+                    if (listIndex >= 0 && listIndex < top.Length)
                     {
-                        evoBoard.selectedCreature = evoBoard.list[listIndex];
+                        evoBoard.selectedCreature = top[listIndex];
                         cameraX = (float) evoBoard.selectedCreature.px;
                         cameraY = (float) evoBoard.selectedCreature.py;
                         zoom = 4;

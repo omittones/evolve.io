@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using core.Graphics;
 
@@ -7,7 +9,6 @@ namespace core
 {
     public class Board
     {
-        public Creature[] list = new Creature[6];
         public bool userControl;
         public bool wasPressingB;
         public HSBColor buttonColor = new HSBColor(0.82f, 0.8f, 0.7f);
@@ -50,14 +51,14 @@ namespace core
         public int playSpeed = 1;
         public readonly double FLASH_SPEED = 80;
         public readonly HSBColor BACKGROUND_COLOR = new HSBColor(0, 0, 0.1f);
-        public readonly HSBColor ROCK_COLOR = new HSBColor(0, 0, 0.5f);
+        public readonly HSBColor ROCK_COLOR = Color.LightGray;
         public readonly int boardHeight;
         public readonly int boardWidth;
         public readonly int creatureMinimumIncrement = 5;
         public readonly List<Creature> creatures;
         public readonly List<SoftBody>[,] softBodiesInPositions;
         public readonly Tile[,] tiles;
-        public string folder = "TEST";
+        public readonly string folder;
 
         public Board(
             InputEngine input,
@@ -80,9 +81,9 @@ namespace core
                 {
                     var bigForce = Math.Pow(((float) y)/boardHeight, 0.5);
                     var fertility = (float)
-                        (Rnd.noise(x*stepSize*3, y*stepSize*3)*(1 - bigForce)*5.0 +
-                         Rnd.noise(x*stepSize*0.5, y*stepSize*0.5)*bigForce*5.0 - 1.5);
-                    var climateType = (float) (Rnd.noise(x*stepSize + 10000, y*stepSize + 10000)*1.63 - 0.4);
+                        (Rnd.noise(x*stepSize*3f, y*stepSize*3f)*(1 - bigForce)*5.0f +
+                         Rnd.noise(x*stepSize*0.5f, y*stepSize*0.5f)*bigForce*5.0f - 1.5f);
+                    var climateType = (float) (Rnd.noise(x*stepSize + 10000, y*stepSize + 10000)*1.63f - 0.4f);
                     climateType = Math.Min(Math.Max(climateType, 0), 0.8f);
                     tiles[x, y] = new Tile(x, y, fertility, 0, climateType);
                 }
@@ -102,19 +103,13 @@ namespace core
             rocks = new List<SoftBody>(0);
             for (var i = 0; i < rocksToAdd; i++)
             {
-                rocks.Add(new SoftBody(this.graphics, Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
-                    getRandomSize(), ROCK_DENSITY, ROCK_COLOR.Hue, ROCK_COLOR.Saturation, ROCK_COLOR.Brightness,
-                    this,
-                    year));
+                rocks.Add(new SoftBody(this.graphics, Rnd.nextFloat(0, boardWidth), Rnd.nextFloat(0, boardHeight), 0, 0,
+                    getRandomSize(), ROCK_DENSITY, ROCK_COLOR, this, year));
             }
 
             creatureMinimum = minimumCreatures;
             creatures = new List<Creature>(0);
             maintainCreatureMinimum(false);
-            for (var i = 0; i < list.Length; i++)
-            {
-                list[i] = null;
-            }
             folder = initialFileName;
             fileSaveCounts = new int[4];
             fileSaveTimes = new double[4];
@@ -135,20 +130,14 @@ namespace core
         public void drawBoard(float scaleUp, float camZoom, int mX, int mY)
         {
             for (var x = 0; x < boardWidth; x++)
-            {
                 for (var y = 0; y < boardHeight; y++)
-                {
                     tiles[x, y].drawTile(this.graphics, scaleUp, (mX == x && mY == y));
-                }
-            }
-            for (var i = 0; i < rocks.Count; i++)
-            {
-                rocks[i].drawSoftBody(scaleUp);
-            }
-            for (var i = 0; i < creatures.Count; i++)
-            {
-                creatures[i].drawSoftBody(scaleUp, camZoom, true);
-            }
+
+            foreach (var rock in rocks)
+                rock.drawSoftBody(scaleUp);
+
+            foreach (var creature in creatures)
+                creature.drawSoftBody(scaleUp, camZoom, true);
         }
 
         public void drawBlankBoard(float scaleUp)
@@ -256,7 +245,7 @@ namespace core
             this.graphics.text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
             this.graphics.text("Generation: " + selectedCreature.gen, 10, 475);
             this.graphics.text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
-            this.graphics.text("Hue: " + ((float) (selectedCreature.myHue)).ToString(0, 2), 10, 550, 210, 255);
+            this.graphics.text("Hue: " + ((float) (selectedCreature.myColor.Hue)).ToString(0, 2), 10, 550, 210, 255);
             this.graphics.text("Mouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2), 10, 575, 210, 255);
 
             if (userControl)
@@ -276,84 +265,37 @@ namespace core
 
         private void drawTopCreatures(float scaleUp, int x1, int y1, int x2)
         {
-            for (var i = 0; i < list.Length; i++)
+            var top = getCreaturesOrderdByCriteria();
+            var maxEnergy = top.Max(e => e.energy);
+
+            for (var i = 0; i < top.Length; i++)
             {
-                list[i] = null;
+                top[i].preferredRank += (i - top[i].preferredRank)*0.4f;
+                var y = y1 + 175 + 70*top[i].preferredRank;
+                this.drawCreature(top[i], 45, y + 5, 0.7f, scaleUp);
+                this.graphics.textSize(24);
+                this.graphics.textAlign(AlignText.LEFT);
+                this.graphics.noStroke();
+                this.graphics.fill(0.333f, 1, 0.4f);
+                float multi = (x2 - x1 - 200);
+                if (top[i].energy > 0)
+                {
+                    this.graphics.rect(85, y + 5, (float) (multi*top[i].energy/maxEnergy), 25);
+                }
+                if (top[i].energy > 1)
+                {
+                    this.graphics.fill(0.333f, 1, 0.8f);
+                    this.graphics.rect(85 + (float) (multi/maxEnergy), y + 5,
+                        (float) (multi*(top[i].energy - 1)/maxEnergy),
+                        25);
+                }
+                this.graphics.fill(0, 0, 1);
+                this.graphics.text(
+                    top[i].getCreatureName() + " [" + top[i].id + "] (" + toAge(top[i].birthTime) + ")",
+                    90, y);
+                this.graphics.text("Energy: " + (100*(float) (top[i].energy)).ToString(0, 2), 90, y + 25);
             }
-            for (var i = 0; i < creatures.Count; i++)
-            {
-                var lookingAt = 0;
-                if (creatureRankMetric == 4)
-                {
-                    while (lookingAt < list.Length && list[lookingAt] != null &&
-                           list[lookingAt].name.CompareTo(creatures[i].name) < 0)
-                    {
-                        lookingAt++;
-                    }
-                }
-                else if (creatureRankMetric == 5)
-                {
-                    while (lookingAt < list.Length && list[lookingAt] != null &&
-                           list[lookingAt].name.CompareTo(creatures[i].name) >= 0)
-                    {
-                        lookingAt++;
-                    }
-                }
-                else
-                {
-                    while (lookingAt < list.Length && list[lookingAt] != null &&
-                           list[lookingAt].measure(creatureRankMetric) > creatures[i].measure(creatureRankMetric))
-                    {
-                        lookingAt++;
-                    }
-                }
-                if (lookingAt < list.Length)
-                {
-                    for (var j = list.Length - 1; j >= lookingAt + 1; j--)
-                    {
-                        list[j] = list[j - 1];
-                    }
-                    list[lookingAt] = creatures[i];
-                }
-            }
-            double maxEnergy = 0;
-            for (var i = 0; i < list.Length; i++)
-            {
-                if (list[i] != null && list[i].energy > maxEnergy)
-                {
-                    maxEnergy = list[i].energy;
-                }
-            }
-            for (var i = 0; i < list.Length; i++)
-            {
-                if (list[i] != null)
-                {
-                    list[i].preferredRank += (i - list[i].preferredRank)*0.4f;
-                    var y = y1 + 175 + 70*list[i].preferredRank;
-                    drawCreature(list[i], 45, y + 5, 0.7f, scaleUp);
-                    this.graphics.textSize(24);
-                    this.graphics.textAlign(AlignText.LEFT);
-                    this.graphics.noStroke();
-                    this.graphics.fill(0.333f, 1, 0.4f);
-                    float multi = (x2 - x1 - 200);
-                    if (list[i].energy > 0)
-                    {
-                        this.graphics.rect(85, y + 5, (float) (multi*list[i].energy/maxEnergy), 25);
-                    }
-                    if (list[i].energy > 1)
-                    {
-                        this.graphics.fill(0.333f, 1, 0.8f);
-                        this.graphics.rect(85 + (float) (multi/maxEnergy), y + 5,
-                            (float) (multi*(list[i].energy - 1)/maxEnergy),
-                            25);
-                    }
-                    this.graphics.fill(0, 0, 1);
-                    this.graphics.text(
-                        list[i].getCreatureName() + " [" + list[i].id + "] (" + toAge(list[i].birthTime) + ")",
-                        90, y);
-                    this.graphics.text("Energy: " + (100*(float) (list[i].energy)).ToString(0, 2), 90, y + 25);
-                }
-            }
+
             this.graphics.noStroke();
             this.graphics.fill(buttonColor);
             this.graphics.rect(10, 95, 220, 40);
@@ -407,6 +349,19 @@ namespace core
                     this.graphics.text(getNextFileName(i - 2), x + 110, y + 37);
                 }
             }
+        }
+
+        public Creature[] getCreaturesOrderdByCriteria()
+        {
+            IEnumerable<Creature> comparison;
+            if (creatureRankMetric == 4)
+                comparison = creatures.OrderBy(c => c.name);
+            else if (creatureRankMetric == 5)
+                comparison = creatures.OrderBy(c => c.name).Reverse();
+            else
+                comparison = creatures.OrderBy(c => c.measure(creatureRankMetric));
+
+            return comparison.Take(6).ToArray();
         }
 
         private void drawPopulationGraph(float x1, float x2, float y1, float y2)
@@ -496,8 +451,8 @@ namespace core
                                 if (this.input.Key == ' ') me.eat(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                                 if (this.input.Key == 'v') me.eat(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                                 if (this.input.Key == 'f') me.fight(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.input.Key == 'u') me.setHue(me.myHue + 0.02);
-                                if (this.input.Key == 'j') me.setHue(me.myHue - 0.02);
+                                if (this.input.Key == 'u') me.setHue(me.myColor.Hue + 0.02);
+                                if (this.input.Key == 'j') me.setHue(me.myColor.Hue - 0.02);
                                 if (this.input.Key == 'i') me.setMouthHue(me.mouthHue + 0.02);
                                 if (this.input.Key == 'k') me.setMouthHue(me.mouthHue - 0.02);
                                 if (this.input.Key == 'b')
@@ -668,31 +623,38 @@ namespace core
                 }
                 else
                 {
-                    creatures.Add(new Creature(this.graphics, Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
-                        Rnd.next(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, Rnd.next(0, 1), 1, 1,
-                        this, year, Rnd.next(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1, Rnd.next(0, 1)));
+                    var color = new HSBColor(0, 1, 1);
+                    color.Hue = Rnd.nextFloat(0, 1);
+
+                    creatures.Add(new Creature(this.graphics, Rnd.nextFloat(0, boardWidth),
+                        Rnd.nextFloat(0, boardHeight), 0, 0,
+                        Rnd.nextFloat(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, color,
+                        this, year, Rnd.nextFloat(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1,
+                        Rnd.nextFloat(0, 1)));
                 }
             }
         }
 
         private Creature getRandomCreature()
         {
-            var index = Rnd.next(0, creatures.Count);
+            var index = Rnd.nextInt(0, creatures.Count);
             return creatures[index];
         }
 
         private double getRandomSize()
         {
-            return Math.Pow(Rnd.next(MIN_ROCK_ENERGY_BASE, MAX_ROCK_ENERGY_BASE), 4);
+            return Math.Pow(Rnd.nextFloat(MIN_ROCK_ENERGY_BASE, MAX_ROCK_ENERGY_BASE), 4);
         }
 
-        private void drawCreature(Creature c, float x, float y, float scale, float scaleUp)
+        private void drawCreature(Creature creature, float x, float y, float scale, float scaleUp)
         {
             this.graphics.pushMatrix();
             var scaleIconUp = scaleUp*scale;
-            this.graphics.translate((float) (-c.px*scaleIconUp), (float) (-c.py*scaleIconUp));
+            this.graphics.translate((float) (-creature.px*scaleIconUp), (float) (-creature.py*scaleIconUp));
             this.graphics.translate(x, y);
-            c.drawSoftBody(scaleIconUp, 40.0f/scale, false);
+
+            creature.drawSoftBody(scaleIconUp, 40.0f/scale, false);
+
             this.graphics.popMatrix();
         }
 

@@ -112,9 +112,9 @@ namespace core.Graphics
                 throw new NotSupportedException();
         }
 
-        public void ellipse(float a, float b, float c = 0, float d = 0)
+        public void ellipse(float x, float y, float width = 0, float height = 0)
         {
-            this.drawer.Ellipse(a, b, c, d);
+            this.drawer.Ellipse(x - width, y - height, width*2, height*2);
         }
 
         public void line(double x1, double y1, double x2, double y2)

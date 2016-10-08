@@ -11,12 +11,12 @@ namespace core
             randomGenerator = new Random();
         }
 
-        public static float next(double min, double max)
+        public static float nextFloat(double min, double max)
         {
             return (float) (randomGenerator.NextDouble()*(max - min) + min);
         }
 
-        public static int next(int min, int max)
+        public static int nextInt(int min, int max)
         {
             return randomGenerator.Next(min, max);
         }
@@ -33,12 +33,8 @@ namespace core
 
         public static float noise(float x, float y)
         {
-            return Perlin.Noise(x, y);
-        }
-
-        public static float noise(double x, double y)
-        {
-            return Perlin.Noise((float) x, (float) y);
+            return Perlin.Noise(x*2 + 7, y*2 + 7) +
+                   Perlin.Noise(x + 100, y + 100);
         }
 
         public static void noiseSeed(int seed)

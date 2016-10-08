@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace core.Graphics
+namespace core
 {
     public class InputEngine
     {

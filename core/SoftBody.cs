@@ -8,15 +8,14 @@ namespace core
     {
         public const float ENERGY_DENSITY = (float) (1.0/(0.2*0.2*Math.PI));
 
+        public HSBColor myColor;
+
         public double px;
         public double py;
         public double vx;
         public double vy;
         public double energy;
         public double density;
-        public double myHue;
-        public double mySaturation;
-        public double myBrightness;
         public double birthTime;
         public bool isCreature = false;
         public readonly float FRICTION = 0.03f;
@@ -41,7 +40,7 @@ namespace core
         public SoftBody(
             GraphicsEngine graphics,
             double tpx, double tpy, double tvx, double tvy, double tenergy, double tdensity,
-            double thue, double tsaturation, double tbrightness, Board tb, double bt)
+            HSBColor color, Board tb, double bt)
         {
             this.graphics = graphics;
 
@@ -51,9 +50,7 @@ namespace core
             vy = tvy;
             energy = tenergy;
             density = tdensity;
-            myHue = thue;
-            mySaturation = tsaturation;
-            myBrightness = tbrightness;
+            myColor = color;
             board = tb;
             setSBIP(false);
             setSBIP(false); // just to set previous SBIPs as well.
@@ -178,7 +175,7 @@ namespace core
             var radius = getRadius();
             this.graphics.stroke(0, 0, 0);
             this.graphics.strokeWeight(2);
-            this.graphics.fill((float) myHue, (float) mySaturation, (float) myBrightness);
+            this.graphics.fill(this.myColor);
             this.graphics.ellipseMode(EllipseMode.RADIUS);
             this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (radius*scaleUp), (float) (radius*scaleUp));
         }

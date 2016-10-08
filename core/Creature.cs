@@ -28,10 +28,11 @@ namespace core
         public const int MAX_NAME_LENGTH = 10;
         public const int MIN_NAME_LENGTH = 3;
 
-        public string name;
-        public string parents;
-        public int gen;
-        public int id;
+        public readonly string name;
+        public readonly string parents;
+        public readonly int gen;
+        public readonly int id;
+
         private readonly double[] previousEnergy = new double[ENERGY_HISTORY_LENGTH];
         private double vr;
         public double rotation;
@@ -51,10 +52,10 @@ namespace core
         public Creature(
             GraphicsEngine graphics,
             double tpx, double tpy, double tvx, double tvy, double tenergy,
-            double tdensity, double thue, double tsaturation, double tbrightness, Board tb, double bt,
+            double tdensity, HSBColor color, Board tb, double bt,
             double rot, double tvr, string tname, string tparents, bool mutateName1,
             Axon[,,] tbrain, double[,] tneurons, int tgen, double tmouthHue)
-            : base(graphics, tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness, tb, bt)
+            : base(graphics, tpx, tpy, tvx, tvy, tenergy, tdensity, color, tb, bt)
         {
 
             if (tbrain == null)
@@ -70,7 +71,7 @@ namespace core
                             double startingWeight = 0;
                             if (y == BRAIN_HEIGHT - 1)
                             {
-                                startingWeight = (Rnd.next()*2 - 1)*STARTING_AXON_VARIABILITY;
+                                startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
                             }
                             axons[x, y, z] = new Axon(startingWeight, AXON_START_MUTABILITY);
                         }
@@ -231,23 +232,22 @@ namespace core
                     }
                 }
             }
+
             if (useOutput)
             {
-                var end = BRAIN_WIDTH - 1;
-                myHue = Math.Min(Math.Max(neurons[end, 0], 0), 1);
-                mouthHue = Math.Min(Math.Max(neurons[end, 1], 0), 1);
-                accelerate(neurons[end, 2], timeStep);
-                turn(neurons[end, 3], timeStep);
-                eat(neurons[end, 4], timeStep);
-                fight(neurons[end, 5], timeStep);
+                const int end = BRAIN_WIDTH - 1;
+                this.myColor.Hue = (float) Math.Min(Math.Max(neurons[end, 0], 0), 1);
+                this.mouthHue = Math.Min(Math.Max(neurons[end, 1], 0), 1);
+                this.accelerate(neurons[end, 2], timeStep);
+                this.turn(neurons[end, 3], timeStep);
+                this.eat(neurons[end, 4], timeStep);
+                this.fight(neurons[end, 5], timeStep);
+
                 if (neurons[end, 6] > 0 && board.year - birthTime >= MATURE_AGE && energy > SAFE_SIZE)
-                {
-                    reproduce(SAFE_SIZE, timeStep);
-                }
+                    this.reproduce(SAFE_SIZE, timeStep);
+
                 for (var i = 0; i < MEMORY_COUNT; i++)
-                {
-                    memories[i] = neurons[end, 10 + i];
-                }
+                    this.memories[i] = neurons[end, 10 + i];
             }
         }
 
@@ -334,15 +334,15 @@ namespace core
             this.graphics.strokeWeight(2);
             this.graphics.stroke(0, 0, 1);
             this.graphics.ellipseMode(EllipseMode.RADIUS);
-            this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp), Board.MINIMUM_SURVIVABLE_SIZE*scaleUp, Board.MINIMUM_SURVIVABLE_SIZE*scaleUp);
+            this.graphics.ellipse((float)(px * scaleUp), (float)(py * scaleUp), Board.MINIMUM_SURVIVABLE_SIZE * scaleUp, Board.MINIMUM_SURVIVABLE_SIZE * scaleUp);
             this.graphics.pushMatrix();
-            this.graphics.translate((float) (px*scaleUp), (float) (py*scaleUp));
-            this.graphics.scale((float) radius);
-            this.graphics.rotate((float) rotation);
-            this.graphics.strokeWeight((float) (2.0/radius));
+            this.graphics.translate((float)(px * scaleUp), (float)(py * scaleUp));
+            this.graphics.scale((float)radius);
+            this.graphics.rotate((float)rotation);
+            this.graphics.strokeWeight((float)(2.0 / radius));
             this.graphics.stroke(0, 0, 0);
-            this.graphics.fill((float) mouthHue, 1.0f, 1.0f);
-            this.graphics.ellipse(0.6f*scaleUp, 0, 0.37f*scaleUp, 0.37f*scaleUp);
+            this.graphics.fill((float)mouthHue, 1.0f, 1.0f);
+            this.graphics.ellipse(0.6f * scaleUp, 0, 0.37f * scaleUp, 0.37f * scaleUp);
             this.graphics.popMatrix();
 
             if (showVision)
@@ -468,7 +468,7 @@ namespace core
             {
                 energyLost = Math.Min(energyLost, energy);
                 energy -= energyLost;
-                getRandomCoveredTile().addFood((float) energyLost, (float) myHue);
+                getRandomCoveredTile().addFood((float) energyLost, (float) this.myColor.Hue);
             }
         }
 
@@ -532,9 +532,9 @@ namespace core
                             visionLineLength = translatedX - Math.Sqrt(r*r - translatedY*translatedY);
                             visionOccludedX[k] = visionStartX + visionLineLength*Math.Cos(visionTotalAngle);
                             visionOccludedY[k] = visionStartY + visionLineLength*Math.Sin(visionTotalAngle);
-                            visionResults[k*3] = body.myHue;
-                            visionResults[k*3 + 1] = body.mySaturation;
-                            visionResults[k*3 + 2] = body.myBrightness;
+                            visionResults[k*3] = body.myColor.Hue;
+                            visionResults[k*3 + 1] = body.myColor.Saturation;
+                            visionResults[k*3 + 2] = body.myColor.Brightness;
                         }
                     }
                 }
@@ -575,7 +575,7 @@ namespace core
             var pieces = 20;
             for (var i = 0; i < pieces; i++)
             {
-                getRandomCoveredTile().addFood((float) energy/pieces, (float) myHue);
+                getRandomCoveredTile().addFood((float) energy/pieces, (float) this.myColor.Hue);
             }
             for (var x = SBIPMinX; x <= SBIPMaxX; x++)
             {
@@ -619,18 +619,16 @@ namespace core
                 }
                 if (availableEnergy > babySize)
                 {
-                    double newPX = Rnd.next(-0.01, 0.01);
-                    double newPY = Rnd.next(-0.01, 0.01);
+                    double newPX = Rnd.nextFloat(-0.01, 0.01);
+                    double newPY = Rnd.nextFloat(-0.01, 0.01);
                         //To avoid landing directly on parents, resulting in division by 0)
-                    double newHue = 0;
-                    double newSaturation = 0;
-                    double newBrightness = 0;
+
                     double newMouthHue = 0;
                     var parentsTotal = parents.Count;
                     var parentNames = new string[parentsTotal];
                     var newBrain = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT - 1];
                     var newNeurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
-                    float randomParentRotation = Rnd.next(0, 1);
+                    float randomParentRotation = Rnd.nextFloat(0, 1);
                     for (var x = 0; x < BRAIN_WIDTH - 1; x++)
                     {
                         for (var y = 0; y < BRAIN_HEIGHT; y++)
@@ -657,17 +655,17 @@ namespace core
                             newNeurons[x, y] = parentForAxon.neurons[x, y];
                         }
                     }
+
+                    var newColor = new HSBColor(0, 1, 1);
                     for (var i = 0; i < parentsTotal; i++)
                     {
-                        var chosenIndex = Rnd.next(0, parents.Count);
-                        var parent = parents[(chosenIndex)];
+                        var chosenIndex = Rnd.nextInt(0, parents.Count);
+                        var parent = parents[chosenIndex];
                         parents.RemoveAt(chosenIndex);
                         parent.energy -= babySize*(parent.getBabyEnergy()/availableEnergy);
                         newPX += parent.px/parentsTotal;
                         newPY += parent.py/parentsTotal;
-                        newHue += parent.myHue/parentsTotal;
-                        newSaturation += parent.mySaturation/parentsTotal;
-                        newBrightness += parent.myBrightness/parentsTotal;
+                        newColor.Hue += parent.myColor.Hue/parentsTotal;
                         newMouthHue += parent.mouthHue/parentsTotal;
                         parentNames[i] = parent.name;
                         if (parent.gen > highestGen)
@@ -675,11 +673,10 @@ namespace core
                             highestGen = parent.gen;
                         }
                     }
-                    newSaturation = 1;
-                    newBrightness = 1;
+
                     board.creatures.Add(new Creature(this.graphics, newPX, newPY, 0, 0,
-                        babySize, density, newHue, newSaturation, newBrightness, board, board.year,
-                        Rnd.next(0, 2*Math.PI), 0,
+                        babySize, density, newColor, board, board.year,
+                        Rnd.nextFloat(0, 2*Math.PI), 0,
                         stitchName(parentNames), andifyParents(parentNames), true,
                         newBrain, newNeurons, highestGen + 1, newMouthHue));
                 }
@@ -716,7 +713,7 @@ namespace core
         public string createNewName()
         {
             var nameSoFar = "";
-            var chosenLength = Rnd.next(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
+            var chosenLength = Rnd.nextFloat(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
             for (var i = 0; i < chosenLength; i++)
             {
                 nameSoFar += getRandomChar();
@@ -726,7 +723,7 @@ namespace core
 
         public char getRandomChar()
         {
-            float letterFactor = Rnd.next(0, 100);
+            float letterFactor = Rnd.nextFloat(0, 100);
             var letterChoice = 0;
             while (letterFactor > 0)
             {
@@ -769,7 +766,7 @@ namespace core
                     {
                         chanceOfAddingChar = 0.0;
                     }
-                    if (Rnd.next(0, 1) < chanceOfAddingChar)
+                    if (Rnd.nextFloat(0, 1) < chanceOfAddingChar)
                     {
                         var extraChar = ' ';
                         while (extraChar == ' ' || (isVowel(ch) == isVowel(extraChar)))
@@ -812,21 +809,21 @@ namespace core
         {
             if (input.Length >= 3)
             {
-                if (Rnd.next(0, 1) < 0.2)
+                if (Rnd.nextFloat(0, 1) < 0.2)
                 {
-                    var removeIndex = Rnd.next(0, input.Length);
+                    var removeIndex = Rnd.nextInt(0, input.Length);
                     input = input.Substr(0, removeIndex) + input.Substr(removeIndex + 1, input.Length);
                 }
             }
             if (input.Length <= 9)
             {
-                if (Rnd.next(0, 1) < 0.2)
+                if (Rnd.nextFloat(0, 1) < 0.2)
                 {
-                    var insertIndex = Rnd.next(0, input.Length + 1);
+                    var insertIndex = Rnd.nextInt(0, input.Length + 1);
                     input = input.Substr(0, insertIndex) + getRandomChar() + input.Substr(insertIndex, input.Length);
                 }
             }
-            var changeIndex = Rnd.next(0, input.Length);
+            var changeIndex = Rnd.nextInt(0, input.Length);
             input = input.Substr(0, changeIndex) + getRandomChar() + input.Substr(changeIndex + 1, input.Length);
             return input;
         }
@@ -888,22 +885,12 @@ namespace core
 
         public void setHue(double set)
         {
-            myHue = Math.Min(Math.Max(set, 0), 1);
+            this.myColor.Hue = (float) Math.Min(Math.Max(set, 0), 1);
         }
 
         public void setMouthHue(double set)
         {
             mouthHue = Math.Min(Math.Max(set, 0), 1);
-        }
-
-        public void setSaturation(double set)
-        {
-            mySaturation = Math.Min(Math.Max(set, 0), 1);
-        }
-
-        public void setBrightness(double set)
-        {
-            myBrightness = Math.Min(Math.Max(set, 0), 1);
         }
 
         public double getVisionEndX(int i)
