@@ -2,9 +2,16 @@ namespace core
 {
     public class MouseEvent
     {
-        public int getCount()
+        private readonly int count;
+
+        public MouseEvent(int count)
         {
-            return 0;
+            this.count = count;
+        }
+
+        public int Count()
+        {
+            return count;
         }
     }
 }

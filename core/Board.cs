@@ -7,12 +7,11 @@ namespace core
 {
     public class Board
     {
+        public Creature[] list = new Creature[6];
         public bool userControl;
         public bool wasPressingB;
-        public hslColor buttonColor = new hslColor(0.82f, 0.8f, 0.7f);
-        public const int LIST_SLOTS = 6;
+        public HSBColor buttonColor = new HSBColor(0.82f, 0.8f, 0.7f);
         public Creature selectedCreature;
-        public Creature[] list = new Creature[LIST_SLOTS];
         public double imageSaveInterval = 1;
         public double MANUAL_BIRTH_SIZE = 1.2;
         public double recordPopulationEvery = 0.02;
@@ -30,6 +29,7 @@ namespace core
         private float maxTemperature;
         private float minTemperature;
         private float temperature;
+        private readonly InputEngine input;
         private readonly GraphicsEngine graphics;
         private readonly int[] fileSaveCounts;
         private readonly int[] populationHistory;
@@ -49,8 +49,8 @@ namespace core
         public int creatureRankMetric = 0;
         public int playSpeed = 1;
         public readonly double FLASH_SPEED = 80;
-        public readonly hslColor BACKGROUND_COLOR = new hslColor(0, 0, 0.1f);
-        public readonly hslColor ROCK_COLOR = new hslColor(0, 0, 0.5f);
+        public readonly HSBColor BACKGROUND_COLOR = new HSBColor(0, 0, 0.1f);
+        public readonly HSBColor ROCK_COLOR = new HSBColor(0, 0, 0.5f);
         public readonly int boardHeight;
         public readonly int boardWidth;
         public readonly int creatureMinimumIncrement = 5;
@@ -60,10 +60,12 @@ namespace core
         public string folder = "TEST";
 
         public Board(
+            InputEngine input,
             GraphicsEngine graphics,
             int width, int height, float stepSize, float minTemp, float maxTemp, int rocksToAdd,
             int minimumCreatures, int seed, string initialFileName, double timeStep)
         {
+            this.input = input;
             this.graphics = graphics;
 
             Rnd.noiseSeed(seed);
@@ -101,14 +103,15 @@ namespace core
             for (var i = 0; i < rocksToAdd; i++)
             {
                 rocks.Add(new SoftBody(this.graphics, Rnd.next(0, boardWidth), Rnd.next(0, boardHeight), 0, 0,
-                    getRandomSize(), ROCK_DENSITY, ROCK_COLOR.HueF(), ROCK_COLOR.SaturationF(), ROCK_COLOR.LuminosityF(), this,
+                    getRandomSize(), ROCK_DENSITY, ROCK_COLOR.Hue, ROCK_COLOR.Saturation, ROCK_COLOR.Brightness,
+                    this,
                     year));
             }
 
             creatureMinimum = minimumCreatures;
             creatures = new List<Creature>(0);
             maintainCreatureMinimum(false);
-            for (var i = 0; i < LIST_SLOTS; i++)
+            for (var i = 0; i < list.Length; i++)
             {
                 list[i] = null;
             }
@@ -154,226 +157,255 @@ namespace core
             this.graphics.rect(0, 0, scaleUp*boardWidth, scaleUp*boardHeight);
         }
 
-        public void drawUI(float scaleUp, double timeStep, int x1, int y1, int x2, int y2, PFont font)
+        public void drawUI(float scaleUp, double timeStep, int x1, int y1, int x2, int y2)
         {
             this.graphics.fill(0, 0, 0);
             this.graphics.noStroke();
             this.graphics.rect(x1, y1, x2 - x1, y2 - y1);
 
+            this.drawInfo(x1, y1);
+
+            if (selectedCreature == null)
+            {
+                drawTopCreatures(scaleUp, x1, y1, x2);
+            }
+            else
+            {
+                drawSelectedCreature(timeStep, x1, y1);
+            }
+
+            this.drawPopulationGraph(x1, x2, y1, y2);
+
+            this.drawCurrentPopAndTemp(x1, y1, x2, y2);
+
+            this.drawThermometer(-45, 30, 20, 660, temperature, THERMOMETER_MIN, THERMOMETER_MAX, new HSBColor(0, 1, 1));
+
+            this.graphics.popMatrix();
+
+            if (selectedCreature != null)
+            {
+                this.drawCreature(selectedCreature, x1 + 65, y1 + 147, 0.7f, scaleUp);
+            }
+        }
+
+        private void drawInfo(int x1, int y1)
+        {
             this.graphics.pushMatrix();
             this.graphics.translate(x1, y1);
 
             this.graphics.fill(0, 0, 1);
             this.graphics.textAlign(AlignText.LEFT);
-            this.graphics.textFont(font, 48);
-            var yearText = "Year " + ((float) year).ToString(0, 2);
+            this.graphics.textSize(48);
+            var yearText = "Year " + year.ToString(0, 2);
             this.graphics.text(yearText, 10, 48);
             var seasonTextXCoor = this.graphics.textWidth(yearText) + 50;
-            this.graphics.textFont(font, 24);
+            this.graphics.textSize(24);
             this.graphics.text("Population: " + creatures.Count, 10, 80);
             string[] seasons = {"Winter", "Spring", "Summer", "Autumn"};
             this.graphics.text(seasons[(int) (getSeason()*4)], seasonTextXCoor, 30);
+        }
 
-            if (selectedCreature == null)
-            {
-                for (var i = 0; i < LIST_SLOTS; i++)
-                {
-                    list[i] = null;
-                }
-                for (var i = 0; i < creatures.Count; i++)
-                {
-                    var lookingAt = 0;
-                    if (creatureRankMetric == 4)
-                    {
-                        while (lookingAt < LIST_SLOTS && list[lookingAt] != null &&
-                               list[lookingAt].name.CompareTo(creatures[i].name) < 0)
-                        {
-                            lookingAt++;
-                        }
-                    }
-                    else if (creatureRankMetric == 5)
-                    {
-                        while (lookingAt < LIST_SLOTS && list[lookingAt] != null &&
-                               list[lookingAt].name.CompareTo(creatures[i].name) >= 0)
-                        {
-                            lookingAt++;
-                        }
-                    }
-                    else
-                    {
-                        while (lookingAt < LIST_SLOTS && list[lookingAt] != null &&
-                               list[lookingAt].measure(creatureRankMetric) > creatures[i].measure(creatureRankMetric))
-                        {
-                            lookingAt++;
-                        }
-                    }
-                    if (lookingAt < LIST_SLOTS)
-                    {
-                        for (var j = LIST_SLOTS - 1; j >= lookingAt + 1; j--)
-                        {
-                            list[j] = list[j - 1];
-                        }
-                        list[lookingAt] = creatures[i];
-                    }
-                }
-                double maxEnergy = 0;
-                for (var i = 0; i < LIST_SLOTS; i++)
-                {
-                    if (list[i] != null && list[i].energy > maxEnergy)
-                    {
-                        maxEnergy = list[i].energy;
-                    }
-                }
-                for (var i = 0; i < LIST_SLOTS; i++)
-                {
-                    if (list[i] != null)
-                    {
-                        list[i].preferredRank += (i - list[i].preferredRank)*0.4f;
-                        var y = y1 + 175 + 70*list[i].preferredRank;
-                        drawCreature(list[i], 45, y + 5, 0.7f, scaleUp);
-                        this.graphics.textFont(font, 24);
-                        this.graphics.textAlign(AlignText.LEFT);
-                        this.graphics.noStroke();
-                        this.graphics.fill(0.333f, 1, 0.4f);
-                        float multi = (x2 - x1 - 200);
-                        if (list[i].energy > 0)
-                        {
-                            this.graphics.rect(85, y + 5, (float) (multi*list[i].energy/maxEnergy), 25);
-                        }
-                        if (list[i].energy > 1)
-                        {
-                            this.graphics.fill(0.333f, 1, 0.8f);
-                            this.graphics.rect(85 + (float) (multi/maxEnergy), y + 5, (float) (multi*(list[i].energy - 1)/maxEnergy), 25);
-                        }
-                        this.graphics.fill(0, 0, 1);
-                        this.graphics.text(list[i].getCreatureName() + " [" + list[i].id + "] (" + toAge(list[i].birthTime) + ")", 90, y);
-                        this.graphics.text("Energy: " + (100*(float) (list[i].energy)).ToString(0, 2), 90, y + 25);
-                    }
-                }
-                this.graphics.noStroke();
-                this.graphics.fill(buttonColor);
-                this.graphics.rect(10, 95, 220, 40);
-                this.graphics.rect(240, 95, 220, 40);
-                this.graphics.fill(0, 0, 1);
-                this.graphics.textAlign(AlignText.CENTER);
-                this.graphics.text("Reset zoom", 120, 123);
-                string[] sorts =
-                {
-                    "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A", "Highest Gen",
-                    "Lowest Gen"
-                };
-                this.graphics.text("Sort by: " + sorts[creatureRankMetric], 350, 123);
-
-                this.graphics.textFont(font, 19);
-                string[] buttonTexts =
-                {
-                    "Brain Control", "Maintain pop. at " + creatureMinimum,
-                    "Screenshot now", "-   Image every " + ((float) imageSaveInterval).ToString(0, 2) + " years   +",
-                    "Text file now", "-    Text every " + ((float) textSaveInterval).ToString(0, 2) + " years    +",
-                    "-    Play Speed (" + playSpeed + "x)    +", "This button does nothing"
-                };
-                if (userControl)
-                {
-                    buttonTexts[0] = "Keyboard Control";
-                }
-                for (var i = 0; i < 8; i++)
-                {
-                    float x = (i%2)*230 + 10;
-                    var y = (float) (Math.Floor(i/2.0)*50 + 570);
-                    this.graphics.fill(buttonColor);
-                    this.graphics.rect(x, y, 220, 40);
-                    if (i >= 2 && i < 6)
-                    {
-                        var flashAlpha = 1.0*Math.Pow(0.5, (year - fileSaveTimes[i - 2])*FLASH_SPEED);
-                        this.graphics.fill(0, 0, 1, (float) flashAlpha);
-                        this.graphics.rect(x, y, 220, 40);
-                    }
-                    this.graphics.fill(0, 0, 1, 1);
-                    this.graphics.text(buttonTexts[i], x + 110, y + 17);
-                    if (i == 0)
-                    {
-                    }
-                    else if (i == 1)
-                    {
-                        this.graphics.text("-" + creatureMinimumIncrement +
-                                           "                    +" + creatureMinimumIncrement, x + 110, y + 37);
-                    }
-                    else if (i <= 5)
-                    {
-                        this.graphics.text(getNextFileName(i - 2), x + 110, y + 37);
-                    }
-                }
-            }
-            else
-            {
-                var energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
-                this.graphics.noStroke();
-                if (energyUsage <= 0)
-                {
-                    this.graphics.fill(0, 1, 0.5f);
-                }
-                else
-                {
-                    this.graphics.fill(0.33f, 1, 0.4f);
-                }
-                var EUbar = 6*energyUsage;
-                this.graphics.rect(110, 280, Math.Min(Math.Max(EUbar, -110), 110), 25);
-                if (EUbar < -110)
-                {
-                    this.graphics.rect(0, 280, 25, (-110 - EUbar)*20 + 25);
-                }
-                else if (EUbar > 110)
-                {
-                    var h = (EUbar - 110)*20 + 25;
-                    this.graphics.rect(185, 280 - h, 25, h);
-                }
-                this.graphics.fill(0, 0, 1);
-                this.graphics.text("Name: " + selectedCreature.getCreatureName(), 10, 225);
-                this.graphics.text("Energy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums", 10, 250);
-                this.graphics.text("E Change: " + (100*energyUsage).ToString(0, 2) + " yums/year", 10, 275);
-
-                this.graphics.text("ID: " + selectedCreature.id, 10, 325);
-                this.graphics.text("X: " + ((float) selectedCreature.px).ToString(0, 2), 10, 350);
-                this.graphics.text("Y: " + ((float) selectedCreature.py).ToString(0, 2), 10, 375);
-                this.graphics.text("Rotation: " + ((float) selectedCreature.rotation).ToString(0, 2), 10, 400);
-                this.graphics.text("B-day: " + toDate(selectedCreature.birthTime), 10, 425);
-                this.graphics.text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
-                this.graphics.text("Generation: " + selectedCreature.gen, 10, 475);
-                this.graphics.text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
-                this.graphics.text("Hue: " + ((float) (selectedCreature.myHue)).ToString(0, 2), 10, 550, 210, 255);
-                this.graphics.text("Mouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2), 10, 575, 210, 255);
-
-                if (userControl)
-                {
-                    this.graphics.text("Controls:\nUp/Down: Move\nLeft/Right: Rotate\nSpace: Eat\nF: Fight\nV: Vomit\nU,J: Change color" +
-                         "\nI,K: Change mouth color\nB: Give birth (Not possible if under " +
-                         Math.Round((MANUAL_BIRTH_SIZE + 1)*100) + " yums)", 10, 625, 250, 400);
-                }
-                this.graphics.pushMatrix();
-                this.graphics.translate(400, 80);
-                var apX = (float) Math.Round((this.graphics.mouseX - 264 - x1)/26.0);
-                var apY = (float) Math.Round((this.graphics.mouseY - 80 - y1)/26.0);
-                selectedCreature.drawBrain(font, 52, (int) apX, (int) apY);
-                this.graphics.popMatrix();
-            }
-            drawPopulationGraph(x1, x2, y1, y2);
+        private void drawCurrentPopAndTemp(int x1, int y1, int x2, int y2)
+        {
             this.graphics.fill(0, 0, 0);
             this.graphics.textAlign(AlignText.RIGHT);
-            this.graphics.textFont(font, 24);
+            this.graphics.textSize(24);
             this.graphics.text("Population: " + creatures.Count, x2 - x1 - 10, y2 - y1 - 10);
             this.graphics.popMatrix();
 
             this.graphics.pushMatrix();
             this.graphics.translate(x2, y1);
             this.graphics.textAlign(AlignText.RIGHT);
-            this.graphics.textFont(font, 24);
+            this.graphics.textSize(24);
             this.graphics.text("Temperature", -10, 24);
-            drawThermometer(-45, 30, 20, 660, temperature, THERMOMETER_MIN, THERMOMETER_MAX, new hslColor(0, 1, 1));
-            this.graphics.popMatrix();
+        }
 
-            if (selectedCreature != null)
+        private void drawSelectedCreature(double timeStep, int x1, int y1)
+        {
+            var energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
+            this.graphics.noStroke();
+            if (energyUsage <= 0)
             {
-                drawCreature(selectedCreature, x1 + 65, y1 + 147, 0.7f, scaleUp);
+                this.graphics.fill(0, 1, 0.5f);
+            }
+            else
+            {
+                this.graphics.fill(0.33f, 1, 0.4f);
+            }
+            var eBar = 6*energyUsage;
+            this.graphics.rect(110, 280, Math.Min(Math.Max(eBar, -110), 110), 25);
+            if (eBar < -110)
+            {
+                this.graphics.rect(0, 280, 25, (-110 - eBar)*20 + 25);
+            }
+            else if (eBar > 110)
+            {
+                var h = (eBar - 110)*20 + 25;
+                this.graphics.rect(185, 280 - h, 25, h);
+            }
+            this.graphics.fill(0, 0, 1);
+            this.graphics.text("Name: " + selectedCreature.getCreatureName(), 10, 225);
+            this.graphics.text("Energy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums", 10, 250);
+            this.graphics.text("E Change: " + (100*energyUsage).ToString(0, 2) + " yums/year", 10, 275);
+
+            this.graphics.text("ID: " + selectedCreature.id, 10, 325);
+            this.graphics.text("X: " + ((float) selectedCreature.px).ToString(0, 2), 10, 350);
+            this.graphics.text("Y: " + ((float) selectedCreature.py).ToString(0, 2), 10, 375);
+            this.graphics.text("Rotation: " + ((float) selectedCreature.rotation).ToString(0, 2), 10, 400);
+            this.graphics.text("B-day: " + toDate(selectedCreature.birthTime), 10, 425);
+            this.graphics.text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
+            this.graphics.text("Generation: " + selectedCreature.gen, 10, 475);
+            this.graphics.text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
+            this.graphics.text("Hue: " + ((float) (selectedCreature.myHue)).ToString(0, 2), 10, 550, 210, 255);
+            this.graphics.text("Mouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2), 10, 575, 210, 255);
+
+            if (userControl)
+            {
+                this.graphics.text(
+                    "Controls:\nUp/Down: Move\nLeft/Right: Rotate\nSpace: Eat\nF: Fight\nV: Vomit\nU,J: Change color" +
+                    "\nI,K: Change mouth color\nB: Give birth (Not possible if under " +
+                    Math.Round((MANUAL_BIRTH_SIZE + 1)*100) + " yums)", 10, 625, 250, 400);
+            }
+            this.graphics.pushMatrix();
+            this.graphics.translate(400, 80);
+            var apX = (float) Math.Round((this.input.MouseX - 264 - x1)/26.0);
+            var apY = (float) Math.Round((this.input.MouseY - 80 - y1)/26.0);
+            selectedCreature.drawBrain(52, (int) apX, (int) apY);
+            this.graphics.popMatrix();
+        }
+
+        private void drawTopCreatures(float scaleUp, int x1, int y1, int x2)
+        {
+            for (var i = 0; i < list.Length; i++)
+            {
+                list[i] = null;
+            }
+            for (var i = 0; i < creatures.Count; i++)
+            {
+                var lookingAt = 0;
+                if (creatureRankMetric == 4)
+                {
+                    while (lookingAt < list.Length && list[lookingAt] != null &&
+                           list[lookingAt].name.CompareTo(creatures[i].name) < 0)
+                    {
+                        lookingAt++;
+                    }
+                }
+                else if (creatureRankMetric == 5)
+                {
+                    while (lookingAt < list.Length && list[lookingAt] != null &&
+                           list[lookingAt].name.CompareTo(creatures[i].name) >= 0)
+                    {
+                        lookingAt++;
+                    }
+                }
+                else
+                {
+                    while (lookingAt < list.Length && list[lookingAt] != null &&
+                           list[lookingAt].measure(creatureRankMetric) > creatures[i].measure(creatureRankMetric))
+                    {
+                        lookingAt++;
+                    }
+                }
+                if (lookingAt < list.Length)
+                {
+                    for (var j = list.Length - 1; j >= lookingAt + 1; j--)
+                    {
+                        list[j] = list[j - 1];
+                    }
+                    list[lookingAt] = creatures[i];
+                }
+            }
+            double maxEnergy = 0;
+            for (var i = 0; i < list.Length; i++)
+            {
+                if (list[i] != null && list[i].energy > maxEnergy)
+                {
+                    maxEnergy = list[i].energy;
+                }
+            }
+            for (var i = 0; i < list.Length; i++)
+            {
+                if (list[i] != null)
+                {
+                    list[i].preferredRank += (i - list[i].preferredRank)*0.4f;
+                    var y = y1 + 175 + 70*list[i].preferredRank;
+                    drawCreature(list[i], 45, y + 5, 0.7f, scaleUp);
+                    this.graphics.textSize(24);
+                    this.graphics.textAlign(AlignText.LEFT);
+                    this.graphics.noStroke();
+                    this.graphics.fill(0.333f, 1, 0.4f);
+                    float multi = (x2 - x1 - 200);
+                    if (list[i].energy > 0)
+                    {
+                        this.graphics.rect(85, y + 5, (float) (multi*list[i].energy/maxEnergy), 25);
+                    }
+                    if (list[i].energy > 1)
+                    {
+                        this.graphics.fill(0.333f, 1, 0.8f);
+                        this.graphics.rect(85 + (float) (multi/maxEnergy), y + 5,
+                            (float) (multi*(list[i].energy - 1)/maxEnergy),
+                            25);
+                    }
+                    this.graphics.fill(0, 0, 1);
+                    this.graphics.text(
+                        list[i].getCreatureName() + " [" + list[i].id + "] (" + toAge(list[i].birthTime) + ")",
+                        90, y);
+                    this.graphics.text("Energy: " + (100*(float) (list[i].energy)).ToString(0, 2), 90, y + 25);
+                }
+            }
+            this.graphics.noStroke();
+            this.graphics.fill(buttonColor);
+            this.graphics.rect(10, 95, 220, 40);
+            this.graphics.rect(240, 95, 220, 40);
+            this.graphics.fill(0, 0, 1);
+            this.graphics.textAlign(AlignText.CENTER);
+            this.graphics.text("Reset zoom", 120, 123);
+            string[] sorts =
+            {
+                "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A", "Highest Gen",
+                "Lowest Gen"
+            };
+            this.graphics.text("Sort by: " + sorts[creatureRankMetric], 350, 123);
+
+            this.graphics.textSize(19);
+            string[] buttonTexts =
+            {
+                "Brain Control", "Maintain pop. at " + creatureMinimum,
+                "Screenshot now", "-   Image every " + ((float) imageSaveInterval).ToString(0, 2) + " years   +",
+                "Text file now", "-    Text every " + ((float) textSaveInterval).ToString(0, 2) + " years    +",
+                "-    Play Speed (" + playSpeed + "x)    +", "This button does nothing"
+            };
+            if (userControl)
+            {
+                buttonTexts[0] = "Keyboard Control";
+            }
+            for (var i = 0; i < 8; i++)
+            {
+                float x = (i%2)*230 + 10;
+                var y = (float) (Math.Floor(i/2.0)*50 + 570);
+                this.graphics.fill(buttonColor);
+                this.graphics.rect(x, y, 220, 40);
+                if (i >= 2 && i < 6)
+                {
+                    var flashAlpha = 1.0*Math.Pow(0.5, (year - fileSaveTimes[i - 2])*FLASH_SPEED);
+                    this.graphics.fill(0, 0, 1, (float) flashAlpha);
+                    this.graphics.rect(x, y, 220, 40);
+                }
+                this.graphics.fill(0, 0, 1, 1);
+                this.graphics.text(buttonTexts[i], x + 110, y + 17);
+                if (i == 0)
+                {
+                }
+                else if (i == 1)
+                {
+                    this.graphics.text("-" + creatureMinimumIncrement +
+                                       "                    +" + creatureMinimumIncrement, x + 110, y + 37);
+                }
+                else if (i <= 5)
+                {
+                    this.graphics.text(getNextFileName(i - 2), x + 110, y + 37);
+                }
             }
         }
 
@@ -446,25 +478,29 @@ namespace core
                 {
                     if (me == selectedCreature)
                     {
-                        if (this.graphics.keyPressed)
+                        if (this.input.KeyPressed)
                         {
-                            if (this.graphics.key == char.MaxValue)
+                            if (this.input.Key == char.MaxValue)
                             {
-                                if (this.graphics.keyCode == Keys.Up) me.accelerate(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.keyCode == Keys.Down) me.accelerate(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.keyCode == Keys.Left) me.turn(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.keyCode == Keys.Right) me.turn(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.input.KeyCode == Keys.Up)
+                                    me.accelerate(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.input.KeyCode == Keys.Down)
+                                    me.accelerate(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.input.KeyCode == Keys.Left)
+                                    me.turn(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.input.KeyCode == Keys.Right)
+                                    me.turn(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
                             }
                             else
                             {
-                                if (this.graphics.key == ' ') me.eat(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.key == 'v') me.eat(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.key == 'f') me.fight(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                                if (this.graphics.key == 'u') me.setHue(me.myHue + 0.02);
-                                if (this.graphics.key == 'j') me.setHue(me.myHue - 0.02);
-                                if (this.graphics.key == 'i') me.setMouthHue(me.mouthHue + 0.02);
-                                if (this.graphics.key == 'k') me.setMouthHue(me.mouthHue - 0.02);
-                                if (this.graphics.key == 'b')
+                                if (this.input.Key == ' ') me.eat(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.input.Key == 'v') me.eat(-0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.input.Key == 'f') me.fight(0.3, timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                                if (this.input.Key == 'u') me.setHue(me.myHue + 0.02);
+                                if (this.input.Key == 'j') me.setHue(me.myHue - 0.02);
+                                if (this.input.Key == 'i') me.setMouthHue(me.mouthHue + 0.02);
+                                if (this.input.Key == 'k') me.setMouthHue(me.mouthHue - 0.02);
+                                if (this.input.Key == 'b')
                                 {
                                     if (!wasPressingB)
                                     {
@@ -516,7 +552,8 @@ namespace core
             var temperatureRange = maxTemperature - minTemperature;
             return
                 (float)
-                    (minTemperature + temperatureRange*0.5 - temperatureRange*0.5*Math.Cos((float) (getSeason()*2*Math.PI)));
+                    (minTemperature + temperatureRange*0.5 -
+                     temperatureRange*0.5*Math.Cos((float) (getSeason()*2*Math.PI)));
         }
 
         private double getSeason()
@@ -524,8 +561,7 @@ namespace core
             return (year%1.0);
         }
 
-        private void drawThermometer(float x1, float y1, float w, float h, float prog, float min, float max,
-            hslColor fillColor)
+        private void drawThermometer(float x1, float y1, float w, float h, float prog, float min, float max, HSBColor fillColor)
         {
             this.graphics.noStroke();
             this.graphics.fill(0, 0, 0.2f);
@@ -553,7 +589,7 @@ namespace core
             this.graphics.text(maxTemperature.ToString(0, 2), x1 - 5, maxY + 8);
         }
 
-        private void drawVerticalSlider(float x1, float y1, float w, float h, float prog, hslColor fillColor, hslColor antiColor)
+        private void drawVerticalSlider(float x1, float y1, float w, float h, float prog, HSBColor fillColor, HSBColor antiColor)
         {
             this.graphics.noStroke();
             this.graphics.fill(0, 0, 0.2f);

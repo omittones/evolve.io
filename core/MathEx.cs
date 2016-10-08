@@ -18,7 +18,34 @@ namespace core
         {
             var x = x2 - x1;
             var y = y2 - y1;
-            return (float)Math.Sqrt(x * x + y * y);
+            return (float) Math.Sqrt(x*x + y*y);
+        }
+
+        public static byte From01To255(float value)
+        {
+            if (value < 0)
+                return 0;
+            else if (value > 1)
+                return 255;
+            return (byte) (value*255);
+        }
+
+        public static float Lerp(float min, float max, float amount)
+        {
+            if (amount > 1)
+                return max;
+            if (amount < 0)
+                return min;
+            return min + (max - min)*amount;
+        }
+
+        public static float LerpAngle(float a, float b, float amount)
+        {
+            while (a > b + 180)
+                b += 360;
+            while (b > a + 180)
+                b -= 360;
+            return Lerp(a, b, amount);
         }
     }
 }

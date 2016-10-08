@@ -2,42 +2,36 @@ using System.Drawing;
 
 namespace core.Graphics
 {
-    public class FilledDrawer : IDrawer
+    public class FilledDrawer : NormalDrawer, IDrawer
     {
-        public Font Font { get; set; }
-        public Color FillColor { get; set; }
-        public Pen StrokePen { get; set; }
+        private readonly SolidBrush fillBrush;
+
+        public Color FillColor
+        {
+            get { return fillBrush.Color; }
+            set { fillBrush.Color = value; }
+        }
 
         private readonly System.Drawing.Graphics engine;
 
-        public FilledDrawer(System.Drawing.Graphics engine)
+        public FilledDrawer(System.Drawing.Graphics engine) : base(engine)
         {
             this.engine = engine;
+            this.fillBrush = new SolidBrush(Color.White);
         }
 
-        public void Rectangle(float x, float y, float width, float height)
+        public override void Rectangle(float x, float y, float width, float height)
         {
-            this.engine.FillRectangle(new SolidBrush(this.FillColor), x, y, width, height);
+            this.engine.FillRectangle(this.fillBrush, x, y, width, height);
+
+            base.Rectangle(x, y, width, height);
         }
 
-        public void DrawLine(float x1, float y1, float x2, float y2)
+        public override void Ellipse(float x, float y, float width, float height)
         {
-            this.engine.DrawLine(this.StrokePen, x1, y1, x2, y2);
-        }
+            this.engine.FillEllipse(this.fillBrush, x, y, width, height);
 
-        public void Text(string text, float x, float y)
-        {
-            this.engine.DrawString(text, this.Font, new SolidBrush(this.FillColor), x, y);
-        }
-
-        public void Text(string text, float x1, float y1, float x2, float y2)
-        {
-            this.engine.DrawString(text, this.Font, new SolidBrush(this.FillColor), new RectangleF(x1, y1, x2, y2));
-        }
-
-        public void Ellipse(float x, float y, float width, float height)
-        {
-            this.engine.FillEllipse(new SolidBrush(FillColor), x, y, width, height);
+            base.Ellipse(x, y, width, height);
         }
     }
 }

@@ -21,7 +21,11 @@ namespace core
 
             this.image = new Bitmap(this.ClientSize.Width, this.ClientSize.Height);
             this.app = new EvolvioColor();
-            this.app.setup(new GraphicsEngine(this, this.image), this.image.Width, this.image.Height);
+            this.app.setup(
+                new InputEngine(this),
+                new GraphicsEngine(this, this.image),
+                this.image.Width,
+                this.image.Height);
 
             Application.Idle += ExecuteStep;
         }

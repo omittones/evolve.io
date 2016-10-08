@@ -136,7 +136,7 @@ namespace core
             mouthHue = tmouthHue;
         }
 
-        public void drawBrain(PFont font, float scaleUp, int mX, int mY)
+        public void drawBrain(float scaleUp, int mX, int mY)
         {
             const float neuronSize = 0.4f;
             this.graphics.noStroke();
@@ -146,7 +146,7 @@ namespace core
 
             this.graphics.ellipseMode(EllipseMode.RADIUS);
             this.graphics.strokeWeight(2);
-            this.graphics.textFont(font, 0.58f*scaleUp);
+            this.graphics.textSize(0.58f*scaleUp);
             this.graphics.fill(0, 0, 1);
             string[] inputLabels =
             {
@@ -256,22 +256,22 @@ namespace core
             return 1.0/(1.0 + Math.Pow(2.71828182846, -input));
         }
 
-        public hslColor neuronFillColor(double d)
+        public HSBColor neuronFillColor(double d)
         {
             if (d >= 0)
             {
-                return new hslColor(0, 0, 1, (float) (d));
+                return new HSBColor(0, 0, 1, (float) (d));
             }
-            return new hslColor(0, 0, 0, (float) (-d));
+            return new HSBColor(0, 0, 0, (float) (-d));
         }
 
-        public hslColor neuronTextColor(double d)
+        public HSBColor neuronTextColor(double d)
         {
             if (d >= 0)
             {
-                return new hslColor(0, 0, 0);
+                return new HSBColor(0, 0, 0);
             }
-            return new hslColor(0, 0, 1);
+            return new HSBColor(0, 0, 1);
         }
 
         public void drawSoftBody(float scaleUp, float camZoom, bool showVision)
@@ -282,10 +282,10 @@ namespace core
             {
                 for (var i = 0; i < visionAngles.Length; i++)
                 {
-                    var visionUIcolor = new hslColor(0, 0, 1);
+                    var visionUIcolor = new HSBColor(0, 0, 1);
                     if (visionResults[i*3 + 2] > BRIGHTNESS_THRESHOLD)
                     {
-                        visionUIcolor = new hslColor(0, 0, 0);
+                        visionUIcolor = new HSBColor(0, 0, 0);
                     }
                     this.graphics.stroke(visionUIcolor);
                     this.graphics.strokeWeight(2);
@@ -309,6 +309,7 @@ namespace core
                         (float) ((visionOccludedY[i] - CROSS_SIZE)*scaleUp));
                 }
             }
+
             this.graphics.noStroke();
             if (fightLevel > 0)
             {
@@ -316,21 +317,24 @@ namespace core
                 this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (FIGHT_RANGE*radius*scaleUp),
                     (float) (FIGHT_RANGE*radius*scaleUp));
             }
+
             this.graphics.strokeWeight(2);
             this.graphics.stroke(0, 0, 1);
             this.graphics.fill(0, 0, 1);
+
             if (this == board.selectedCreature)
             {
                 this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp),
                     (float) (radius*scaleUp + 1 + 75.0/camZoom), (float) (radius*scaleUp + 1 + 75.0/camZoom));
             }
-            base.drawSoftBody(scaleUp);
+
+            this.drawSoftBody(scaleUp);
+
             this.graphics.noFill();
             this.graphics.strokeWeight(2);
             this.graphics.stroke(0, 0, 1);
             this.graphics.ellipseMode(EllipseMode.RADIUS);
-            this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp),
-                Board.MINIMUM_SURVIVABLE_SIZE*scaleUp, Board.MINIMUM_SURVIVABLE_SIZE*scaleUp);
+            this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp), Board.MINIMUM_SURVIVABLE_SIZE*scaleUp, Board.MINIMUM_SURVIVABLE_SIZE*scaleUp);
             this.graphics.pushMatrix();
             this.graphics.translate((float) (px*scaleUp), (float) (py*scaleUp));
             this.graphics.scale((float) radius);
@@ -340,10 +344,11 @@ namespace core
             this.graphics.fill((float) mouthHue, 1.0f, 1.0f);
             this.graphics.ellipse(0.6f*scaleUp, 0, 0.37f*scaleUp, 0.37f*scaleUp);
             this.graphics.popMatrix();
+
             if (showVision)
             {
                 this.graphics.fill(0, 0, 1);
-                this.graphics.textFont(this.graphics.font, 0.3f*scaleUp);
+                this.graphics.textSize(0.3f*scaleUp);
                 this.graphics.textAlign(AlignText.CENTER);
                 this.graphics.text(getCreatureName(), (float) (px*scaleUp), (float) ((py - getRadius()*1.4)*scaleUp));
             }
@@ -481,9 +486,9 @@ namespace core
                 visionOccludedX[k] = endX;
                 visionOccludedY[k] = endY;
                 var c = getColorAt(endX, endY);
-                visionResults[k*3] = c.HueF();
-                visionResults[k*3 + 1] = c.SaturationF();
-                visionResults[k*3 + 2] = c.LuminosityF();
+                visionResults[k*3] = c.Hue;
+                visionResults[k*3 + 1] = c.Saturation;
+                visionResults[k*3 + 2] = c.Brightness;
 
                 var prevTileX = -1;
                 var prevTileY = -1;
@@ -536,7 +541,7 @@ namespace core
             }
         }
 
-        public hslColor getColorAt(double x, double y)
+        public HSBColor getColorAt(double x, double y)
         {
             if (x >= 0 && x < board.boardWidth && y >= 0 && y < board.boardHeight)
             {

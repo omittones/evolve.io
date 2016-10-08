@@ -6,7 +6,7 @@ namespace core
     public class EvolvioColor
     {
         public const double TIME_STEP = 0.001;
-        
+
         public const int CREATURE_MINIMUM = 60;
         public const int ROCKS_TO_ADD = 0;
         public const int SEED = 48;
@@ -29,24 +29,31 @@ namespace core
         private float cameraY = BOARD_HEIGHT*0.5f;
         private float prevMouseX;
         private float prevMouseY;
-        private float zoom = 1;
+        private float zoom;
         private int dragging; // 0 = no drag, 1 = drag screen, 2 and 3 are dragging temp extremes.
-        private PFont myFont;
         private GraphicsEngine graphics;
+        private InputEngine input;
 
-        public void setup(GraphicsEngine graphics, int width, int height)
+        public void setup(
+            InputEngine input,
+            GraphicsEngine graphics,
+            int width,
+            int height)
         {
             this.windowWidth = width;
             this.windowHeight = height;
-            this.grossOverallScaleFactor = ((float)windowHeight) / BOARD_HEIGHT / SCALE_TO_FIX_BUG;
+            this.grossOverallScaleFactor = ((float) windowHeight)/BOARD_HEIGHT/SCALE_TO_FIX_BUG;
 
+            this.input = input;
             this.graphics = graphics;
-            this.graphics.colorMode(ColorMode.HSB, 1.0f);
-            myFont = this.graphics.loadFont("Jygquip1-48.vlw");
-            evoBoard = new Board(this.graphics, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE,
+            evoBoard = new Board(this.input, this.graphics, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE,
                 MIN_TEMPERATURE, MAX_TEMPERATURE,
                 ROCKS_TO_ADD, CREATURE_MINIMUM, SEED,
                 INITIAL_FILE_NAME, TIME_STEP);
+
+            this.input.OnMouseWheel += this.handleMouseWheel;
+            this.input.OnMousePressed += this.handleMousePressed;
+            this.input.OnMouseReleased += this.handleMouseReleased;
 
             resetZoom();
         }
@@ -57,26 +64,26 @@ namespace core
             {
                 evoBoard.iterate(TIME_STEP);
             }
-            if (MathEx.Distance(prevMouseX, prevMouseY, this.graphics.mouseX, this.graphics.mouseY) > 5)
+            if (MathEx.Distance(prevMouseX, prevMouseY, this.input.MouseX, this.input.MouseY) > 5)
             {
                 draggedFar = true;
             }
             if (dragging == 1)
             {
-                cameraX -= toWorldXCoordinate(this.graphics.mouseX, this.graphics.mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
-                cameraY -= toWorldYCoordinate(this.graphics.mouseX, this.graphics.mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
+                cameraX -= toWorldXCoordinate(this.input.MouseX, this.input.MouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
+                cameraY -= toWorldYCoordinate(this.input.MouseX, this.input.MouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
             }
             else if (dragging == 2)
             {
                 //UGLY UGLY CODE.  Do not look at this
-                if (evoBoard.setMinTemperature(1.0f - (this.graphics.mouseY - 30)/660.0f))
+                if (evoBoard.setMinTemperature(1.0f - (this.input.MouseY - 30)/660.0f))
                 {
                     dragging = 3;
                 }
             }
             else if (dragging == 3)
             {
-                if (evoBoard.setMaxTemperature(1.0f - (this.graphics.mouseY - 30)/660.0f))
+                if (evoBoard.setMaxTemperature(1.0f - (this.input.MouseY - 30)/660.0f))
                 {
                     dragging = 2;
                 }
@@ -101,59 +108,60 @@ namespace core
                 this.graphics.rotate(cameraR);
             }
             this.graphics.translate(-cameraX*SCALE_TO_FIX_BUG, -cameraY*SCALE_TO_FIX_BUG);
-            evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(this.graphics.mouseX, this.graphics.mouseY),
-                (int) toWorldYCoordinate(this.graphics.mouseX, this.graphics.mouseY));
+            evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(this.input.MouseX, this.input.MouseY),
+                (int) toWorldYCoordinate(this.input.MouseX, this.input.MouseY));
             this.graphics.popMatrix();
-            evoBoard.drawUI(SCALE_TO_FIX_BUG, TIME_STEP, windowHeight, 0, windowWidth, windowHeight, myFont);
+            evoBoard.drawUI(SCALE_TO_FIX_BUG, TIME_STEP, windowHeight, 0, windowWidth, windowHeight);
 
             evoBoard.fileSave();
-            prevMouseX = this.graphics.mouseX;
-            prevMouseY = this.graphics.mouseY;
+            prevMouseX = this.input.MouseX;
+            prevMouseY = this.input.MouseY;
         }
 
-        public void mouseWheel(MouseEvent @event)
+        public void handleMouseWheel(MouseEvent @event)
         {
-            float delta = @event.getCount();
+            float delta = @event.Count();
             if (delta >= 0.5)
             {
-                setZoom(zoom*0.90909f, this.graphics.mouseX, this.graphics.mouseY);
+                setZoom(zoom*0.90909f, this.input.MouseX, this.input.MouseY);
             }
             else if (delta <= -0.5)
             {
-                setZoom(zoom*1.1f, this.graphics.mouseX, this.graphics.mouseY);
+                setZoom(zoom*1.1f, this.input.MouseX, this.input.MouseY);
             }
         }
 
-        public void mousePressed()
+        public void handleMousePressed()
         {
-            if (this.graphics.mouseX < windowHeight)
+            if (this.input.MouseX < windowHeight)
             {
                 dragging = 1;
             }
             else
             {
-                if (Math.Abs(this.graphics.mouseX - (windowHeight + 65)) <= 60 && Math.Abs(this.graphics.mouseY - 147) <= 60 &&
+                if (Math.Abs(this.input.MouseX - (windowHeight + 65)) <= 60 &&
+                    Math.Abs(this.input.MouseY - 147) <= 60 &&
                     evoBoard.selectedCreature != null)
                 {
                     cameraX = (float) evoBoard.selectedCreature.px;
                     cameraY = (float) evoBoard.selectedCreature.py;
                     zoom = 4;
                 }
-                else if (this.graphics.mouseY >= 95 && this.graphics.mouseY < 135 && evoBoard.selectedCreature == null)
+                else if (this.input.MouseY >= 95 && this.input.MouseY < 135 && evoBoard.selectedCreature == null)
                 {
-                    if (this.graphics.mouseX >= windowHeight + 10 && this.graphics.mouseX < windowHeight + 230)
+                    if (this.input.MouseX >= windowHeight + 10 && this.input.MouseX < windowHeight + 230)
                     {
                         resetZoom();
                     }
-                    else if (this.graphics.mouseX >= windowHeight + 240 && this.graphics.mouseX < windowHeight + 460)
+                    else if (this.input.MouseX >= windowHeight + 240 && this.input.MouseX < windowHeight + 460)
                     {
                         evoBoard.creatureRankMetric = (evoBoard.creatureRankMetric + 1)%8;
                     }
                 }
-                else if (this.graphics.mouseY >= 570)
+                else if (this.input.MouseY >= 570)
                 {
-                    float x = (this.graphics.mouseX - (windowHeight + 10));
-                    float y = (this.graphics.mouseY - 570);
+                    float x = (this.input.MouseX - (windowHeight + 10));
+                    float y = (this.input.MouseY - 570);
                     var clickedOnLeft = (x%230 < 110);
                     if (x >= 0 && x < 2*230 && y >= 0 && y < 4*50 && x%230 < 220 && y%50 < 40)
                     {
@@ -240,10 +248,11 @@ namespace core
                         }
                     }
                 }
-                else if (this.graphics.mouseX >= this.graphics.screenHeight + 10 && this.graphics.mouseX < this.graphics.screenWidth - 50 && evoBoard.selectedCreature == null)
+                else if (this.input.MouseX >= this.graphics.screenHeight + 10 &&
+                         this.input.MouseX < this.graphics.screenWidth - 50 && evoBoard.selectedCreature == null)
                 {
-                    var listIndex = (this.graphics.mouseY - 150)/70;
-                    if (listIndex >= 0 && listIndex < Board.LIST_SLOTS)
+                    var listIndex = (this.input.MouseY - 150)/70;
+                    if (listIndex >= 0 && listIndex < evoBoard.list.Length)
                     {
                         evoBoard.selectedCreature = evoBoard.list[listIndex];
                         cameraX = (float) evoBoard.selectedCreature.px;
@@ -251,9 +260,9 @@ namespace core
                         zoom = 4;
                     }
                 }
-                if (this.graphics.mouseX >= this.graphics.screenWidth - 50)
+                if (this.input.MouseX >= this.graphics.screenWidth - 50)
                 {
-                    var toClickTemp = (this.graphics.mouseY - 30)/660.0f;
+                    var toClickTemp = (this.input.MouseY - 30)/660.0f;
                     var lowTemp = 1.0f - evoBoard.getLowTempProportion();
                     var highTemp = 1.0f - evoBoard.getHighTempProportion();
                     if (Math.Abs(toClickTemp - lowTemp) < Math.Abs(toClickTemp - highTemp))
@@ -269,16 +278,16 @@ namespace core
             draggedFar = false;
         }
 
-        public void mouseReleased()
+        public void handleMouseReleased()
         {
             if (!draggedFar)
             {
-                if (this.graphics.mouseX < windowHeight)
+                if (this.input.MouseX < windowHeight)
                 {
                     // DO NOT LOOK AT THIS CODE EITHER it is bad
                     dragging = 1;
-                    var mX = toWorldXCoordinate(this.graphics.mouseX, this.graphics.mouseY);
-                    var mY = toWorldYCoordinate(this.graphics.mouseX, this.graphics.mouseY);
+                    var mX = toWorldXCoordinate(this.input.MouseX, this.input.MouseY);
+                    var mY = toWorldYCoordinate(this.input.MouseX, this.input.MouseY);
                     var x = (int) (Math.Floor(mX));
                     var y = (int) (Math.Floor(mY));
                     evoBoard.unselect();
@@ -307,7 +316,7 @@ namespace core
         {
             cameraX = BOARD_WIDTH*0.5f;
             cameraY = BOARD_HEIGHT*0.5f;
-            zoom = 1;
+            zoom = 1f;
         }
 
         private void setZoom(float target, float x, float y)

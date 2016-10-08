@@ -11,5 +11,7 @@ namespace core.Graphics
         void Text(string text, float x1, float y1, float x2, float y2);
 
         void Ellipse(float x, float y, float width, float height);
+
+        AlignText Align { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -9,21 +10,13 @@ namespace core.Graphics
     {
         public readonly float screenWidth;
         public readonly float screenHeight;
-        public bool keyPressed;
-        public Keys keyCode;
-        public char key;
-        public int mouseX;
-        public int mouseY;
         private readonly System.Drawing.Graphics engine;
         private readonly NormalDrawer normalDrawer;
         private readonly FilledDrawer fillDrawer;
         private IDrawer drawer;
-        public readonly PFont font;
         private readonly Stack<Matrix> transMatrix;
 
-        public GraphicsEngine(
-            Form container,
-            Image image)
+        public GraphicsEngine(Form container, Image image)
         {
             this.engine = System.Drawing.Graphics.FromImage(image);
             this.normalDrawer = new NormalDrawer(this.engine);
@@ -33,34 +26,6 @@ namespace core.Graphics
             this.transMatrix = new Stack<Matrix>();
             this.screenWidth = image.Width;
             this.screenHeight = image.Height;
-
-            container.MouseMove += UpdateMouse;
-            container.KeyDown += SetKeyCode;
-            container.KeyPress += SetKeyChar;
-            container.KeyUp += RemoveKeyCode;
-        }
-
-        private void SetKeyChar(object sender, KeyPressEventArgs e)
-        {
-            this.key = e.KeyChar;
-        }
-
-        private void SetKeyCode(object sender, KeyEventArgs e)
-        {
-            this.keyPressed = true;
-            this.keyCode = e.KeyCode;
-            this.key = char.MaxValue;
-        }
-
-        private void RemoveKeyCode(object sender, KeyEventArgs e)
-        {
-            this.keyPressed = false;
-        }
-
-        private void UpdateMouse(object sender, MouseEventArgs e)
-        {
-            this.mouseX = e.X;
-            this.mouseY = e.Y;
         }
 
         public void noFill()
@@ -68,49 +33,43 @@ namespace core.Graphics
             this.drawer = this.normalDrawer;
         }
 
-        public void fill(hslColor color)
+        public void fill(HSBColor color)
         {
             this.drawer = this.fillDrawer;
             this.fillDrawer.FillColor = color;
+            this.fillDrawer.TextColor = color;
+            this.normalDrawer.TextColor = color;
         }
 
         public void fill(float h, float s, float l, float alpha = 1)
         {
-            var color = new hslColor(h, s, l, alpha);
+            var color = new HSBColor(h, s, l, alpha);
             this.fill(color);
         }
 
-        public void stroke(hslColor color)
+        public void stroke(HSBColor color)
         {
-            this.normalDrawer.StrokePen = new Pen(color);
-            this.fillDrawer.StrokePen = new Pen(color);
+            this.normalDrawer.StrokeColor = color;
+            this.normalDrawer.TextColor = color;
+            this.fillDrawer.StrokeColor = color;
         }
 
         public void stroke(float h, float s, float l, float a = 1.0f)
         {
-            var color = new hslColor(h, s, l, a);
+            var color = new HSBColor(h, s, l, a);
             this.stroke(color);
         }
 
         public void strokeWeight(float weight)
         {
-            this.normalDrawer.StrokePen.Width = weight;
-            this.fillDrawer.StrokePen.Width = weight;
+            this.normalDrawer.StrokeWidth = weight;
+            this.fillDrawer.StrokeWidth = weight;
         }
 
         public void noStroke()
         {
-            this.normalDrawer.StrokePen.Width = 1;
-            this.fillDrawer.StrokePen.Width = 1;
-        }
-
-        public void colorMode(ColorMode mode, float gamma)
-        {
-        }
-
-        public PFont loadFont(string font)
-        {
-            return null;
+            this.normalDrawer.StrokeWidth = 0;
+            this.fillDrawer.StrokeWidth = 0;
         }
 
         public void saveFrame(string filename)
@@ -139,20 +98,18 @@ namespace core.Graphics
         public void popMatrix()
         {
             if (this.transMatrix.Count > 0)
-            {
                 this.engine.Transform = this.transMatrix.Pop();
-            }
         }
 
         public void pushMatrix()
         {
             this.transMatrix.Push(this.engine.Transform.Clone());
-            this.engine.Transform.Reset();
         }
-        
+
         public void ellipseMode(EllipseMode mode)
         {
-
+            if (mode == EllipseMode.OTHER)
+                throw new NotSupportedException();
         }
 
         public void ellipse(float a, float b, float c = 0, float d = 0)
@@ -172,7 +129,7 @@ namespace core.Graphics
 
         public void textAlign(AlignText where)
         {
-
+            this.drawer.Align = where;
         }
 
         public void text(string text, float x, float y)
@@ -185,15 +142,14 @@ namespace core.Graphics
             this.drawer.Text(text, x1, y1, x2, y2);
         }
 
-        public float textWidth(string width)
+        public float textWidth(string text)
         {
-            return this.engine.MeasureString(width,
-                this.normalDrawer.Font).Width;
+            return this.engine.MeasureString(text, this.normalDrawer.Font).Width;
         }
 
-        public void textFont(PFont font, float size)
+        public void textSize(float size)
         {
-            this.normalDrawer.Font = new Font(this.normalDrawer.Font.FontFamily, size, GraphicsUnit.Pixel);
+            this.normalDrawer.Font = new Font(this.normalDrawer.Font.FontFamily, size/1.5f, GraphicsUnit.Pixel);
             this.fillDrawer.Font = this.normalDrawer.Font;
         }
     }
