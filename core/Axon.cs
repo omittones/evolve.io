@@ -10,10 +10,10 @@ namespace core
         public readonly double weight;
         public readonly double mutability;
 
-        public Axon(double w, double m)
+        public Axon(double weight, double mutability)
         {
-            weight = w;
-            mutability = m;
+            this.weight = weight;
+            this.mutability = mutability;
             MUTATE_MULTI = Math.Pow(0.5, MUTATE_POWER);
         }
 

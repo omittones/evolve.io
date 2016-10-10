@@ -118,9 +118,9 @@ namespace core
                 fileSaveCounts[i] = 0;
                 fileSaveTimes[i] = -999;
             }
-            userControl = true;
+            this.userControl = false;
             this.timeStep = timeStep;
-            populationHistory = new int[POPULATION_HISTORY_LENGTH];
+            this.populationHistory = new int[POPULATION_HISTORY_LENGTH];
             for (var i = 0; i < POPULATION_HISTORY_LENGTH; i++)
             {
                 populationHistory[i] = 0;
@@ -160,7 +160,7 @@ namespace core
             }
             else
             {
-                drawSelectedCreature(timeStep, x1, y1);
+                drawSelectedCreature(x1, y1);
             }
 
             this.drawPopulationGraph(x1, x2, y1, y2);
@@ -209,8 +209,11 @@ namespace core
             this.graphics.text("Temperature", -10, 24);
         }
 
-        private void drawSelectedCreature(double timeStep, int x1, int y1)
+        private void drawSelectedCreature(int x1, int y1)
         {
+            if (this.selectedCreature.dead)
+                return;
+
             var energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
             this.graphics.noStroke();
             if (energyUsage <= 0)
@@ -255,17 +258,25 @@ namespace core
                     "\nI,K: Change mouth color\nB: Give birth (Not possible if under " +
                     Math.Round((MANUAL_BIRTH_SIZE + 1)*100) + " yums)", 10, 625, 250, 400);
             }
+
             this.graphics.pushMatrix();
-            this.graphics.translate(400, 80);
-            var apX = (float) Math.Round((this.input.MouseX - 264 - x1)/26.0);
-            var apY = (float) Math.Round((this.input.MouseY - 80 - y1)/26.0);
-            selectedCreature.drawBrain(52, (int) apX, (int) apY);
+            this.graphics.translate(300, 100);
+            this.graphics.scale(500.0f);
+            
+            var apX = Math.Round((this.input.MouseX - 264 - x1)/26.0);
+            var apY = Math.Round((this.input.MouseY - 80 - y1)/26.0);
+
+            //selectedCreature.brain.draw(this.graphics, (int) apX, (int) apY);
+
             this.graphics.popMatrix();
         }
 
         private void drawTopCreatures(float scaleUp, int x1, int y1, int x2)
         {
             var top = getCreaturesOrderdByCriteria();
+            if (selectedCreature == null)
+                selectedCreature = top[0];
+
             var maxEnergy = top.Max(e => e.energy);
 
             for (var i = 0; i < top.Length; i++)
@@ -336,6 +347,7 @@ namespace core
                 }
                 this.graphics.fill(0, 0, 1, 1);
                 this.graphics.text(buttonTexts[i], x + 110, y + 17);
+
                 if (i == 0)
                 {
                 }
@@ -415,14 +427,13 @@ namespace core
                     tiles[x, y].iterate(timeStep, getGrowableTime());
                 }
             }
-            for (var i = 0; i < creatures.Count; i++)
-            {
-                creatures[i].setPreviousEnergy();
-            }
-            for (var i = 0; i < rocks.Count; i++)
-            {
-                rocks[i].collide(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-            }
+
+            foreach (var creature in creatures)
+                creature.setPreviousEnergy();
+
+            foreach (var rock in rocks)
+                rock.collide(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+
             maintainCreatureMinimum(false);
             for (var i = 0; i < creatures.Count; i++)
             {
@@ -471,24 +482,23 @@ namespace core
                         }
                     }
                 }
-                me.useBrain(timeStep*OBJECT_TIMESTEPS_PER_YEAR, !userControl);
+
+                me.decideWhatToDo(timeStep*OBJECT_TIMESTEPS_PER_YEAR, !userControl);
+
                 if (me.getRadius() < MINIMUM_SURVIVABLE_SIZE)
                 {
-                    me.returnToEarth();
-                    creatures.Remove(me);
+                    this.killCreature(me);
                     i--;
                 }
             }
 
-            for (var i = 0; i < rocks.Count; i++)
-            {
-                rocks[i].applyMotions(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-            }
+            foreach (var rock in rocks)
+                rock.applyMotions(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
 
-            for (var i = 0; i < creatures.Count; i++)
+            foreach (var creature in creatures)
             {
-                creatures[i].applyMotions(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
-                creatures[i].see();
+                creature.applyMotions(timeStep*OBJECT_TIMESTEPS_PER_YEAR);
+                creature.see();
             }
 
             if (Math.Floor(fileSaveTimes[1]/imageSaveInterval) != Math.Floor(year/imageSaveInterval))
@@ -499,6 +509,17 @@ namespace core
             if (Math.Floor(fileSaveTimes[3]/textSaveInterval) != Math.Floor(year/textSaveInterval))
             {
                 prepareForFileSave(3);
+            }
+        }
+
+        private void killCreature(Creature creature)
+        {
+            creature.killAndReturnToEarth();
+            creatures.Remove(creature);
+            while (this.selectedCreature == creature)
+            {
+                var rndSelection = Rnd.nextInt(0, creatures.Count);
+                this.selectedCreature = creatures[rndSelection];
             }
         }
 
@@ -629,7 +650,7 @@ namespace core
                     creatures.Add(new Creature(this.graphics, Rnd.nextFloat(0, boardWidth),
                         Rnd.nextFloat(0, boardHeight), 0, 0,
                         Rnd.nextFloat(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, color,
-                        this, year, Rnd.nextFloat(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, null, 1,
+                        this, year, Rnd.nextFloat(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, 1,
                         Rnd.nextFloat(0, 1)));
                 }
             }

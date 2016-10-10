@@ -82,17 +82,17 @@ namespace core.Graphics
 
         public void translate(float x, float y)
         {
-            this.engine.TranslateTransform(x, y, MatrixOrder.Append);
+            this.engine.TranslateTransform(x, y, MatrixOrder.Prepend);
         }
 
         public void scale(float scale)
         {
-            this.engine.ScaleTransform(scale, scale, MatrixOrder.Append);
+            this.engine.ScaleTransform(scale, scale, MatrixOrder.Prepend);
         }
 
         public void rotate(float rotate)
         {
-            this.engine.RotateTransform(rotate, MatrixOrder.Append);
+            this.engine.RotateTransform(rotate, MatrixOrder.Prepend);
         }
 
         public void popMatrix()

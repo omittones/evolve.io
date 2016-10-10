@@ -183,9 +183,7 @@ namespace core
         public double getRadius()
         {
             if (energy <= 0)
-            {
                 return 0;
-            }
             return Math.Sqrt(energy/ENERGY_DENSITY/Math.PI);
         }
 

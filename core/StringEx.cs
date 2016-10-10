@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+
 namespace core
 {
     public static class StringEx
@@ -24,6 +27,12 @@ namespace core
             if (end >= value.Length)
                 end = value.Length - 1;
             return value.Substring(start, end - start + 1);
+        }
+
+        public static void OutputToConsole(this double[] values)
+        {
+            var text = string.Join(", ", values.Select(v => v.ToString("0.00")));
+            Console.WriteLine(text);
         }
     }
 }

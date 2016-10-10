@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using core.Graphics;
 
 namespace core
@@ -8,7 +9,7 @@ namespace core
     {
         public const double ACCELERATION_BACK_ENERGY = 0.05;
         public const double ACCELERATION_ENERGY = 0.03;
-        public const double AXON_START_MUTABILITY = 0.0005;
+
         public const double EAT_ENERGY = 0.04;
         public const double EAT_SPEED = 0.9; // 1 is instant, 0 is nonexistent, 0.001 is verrry slow.
         public const double FIGHT_ENERGY = 0.03;
@@ -17,13 +18,11 @@ namespace core
         public const double MATURE_AGE = 0.01;
         public const double METABOLISM_ENERGY = 0.004;
         public const double SAFE_SIZE = 1.25;
-        public const double STARTING_AXON_VARIABILITY = 1.0;
         public const double SWIM_ENERGY = 0.008;
         public const double TURN_ENERGY = 0.01;
         public const float BRIGHTNESS_THRESHOLD = 0.7f;
         public const float CROSS_SIZE = 0.05f;
-        public const int BRAIN_HEIGHT = 12;
-        public const int BRAIN_WIDTH = 3;
+
         public const int ENERGY_HISTORY_LENGTH = 6;
         public const int MAX_NAME_LENGTH = 10;
         public const int MIN_NAME_LENGTH = 3;
@@ -36,8 +35,7 @@ namespace core
         private readonly double[] previousEnergy = new double[ENERGY_HISTORY_LENGTH];
         private double vr;
         public double rotation;
-        private readonly Axon[,,] axons;
-        private readonly double[,] neurons;
+
 
         public float preferredRank = 8;
         private static readonly double[] visionAngles = {0, -0.4, 0.4};
@@ -45,59 +43,25 @@ namespace core
         private readonly double[] visionOccludedX = new double[visionAngles.Length];
         private readonly double[] visionOccludedY = new double[visionAngles.Length];
         private readonly double[] visionResults = new double[9];
-        private readonly int MEMORY_COUNT = 1;
-        private readonly double[] memories;
+
         public double mouthHue;
+
+        public readonly Brain brain;
+        public bool dead;
 
         public Creature(
             GraphicsEngine graphics,
             double tpx, double tpy, double tvx, double tvy, double tenergy,
             double tdensity, HSBColor color, Board tb, double bt,
             double rot, double tvr, string tname, string tparents, bool mutateName1,
-            Axon[,,] tbrain, double[,] tneurons, int tgen, double tmouthHue)
+            Brain tbrain, int tgen, double tmouthHue)
             : base(graphics, tpx, tpy, tvx, tvy, tenergy, tdensity, color, tb, bt)
         {
-
             if (tbrain == null)
-            {
-                axons = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT - 1];
-                neurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
-                for (var x = 0; x < BRAIN_WIDTH - 1; x++)
-                {
-                    for (var y = 0; y < BRAIN_HEIGHT; y++)
-                    {
-                        for (var z = 0; z < BRAIN_HEIGHT - 1; z++)
-                        {
-                            double startingWeight = 0;
-                            if (y == BRAIN_HEIGHT - 1)
-                            {
-                                startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
-                            }
-                            axons[x, y, z] = new Axon(startingWeight, AXON_START_MUTABILITY);
-                        }
-                    }
-                }
-                neurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
-                for (var x = 0; x < BRAIN_WIDTH; x++)
-                {
-                    for (var y = 0; y < BRAIN_HEIGHT; y++)
-                    {
-                        if (y == BRAIN_HEIGHT - 1)
-                        {
-                            neurons[x, y] = 1;
-                        }
-                        else
-                        {
-                            neurons[x, y] = 0;
-                        }
-                    }
-                }
-            }
+                this.brain = new Brain();
             else
-            {
-                axons = tbrain;
-                neurons = tneurons;
-            }
+                this.brain = tbrain;
+
             rotation = rot;
             vr = tvr;
             isCreature = true;
@@ -125,153 +89,31 @@ namespace core
             //visionEndX = getVisionStartX();
             //visionEndY = getVisionStartY();
             for (var i = 0; i < 9; i++)
-            {
                 visionResults[i] = 0;
-            }
-            memories = new double[MEMORY_COUNT];
-            for (var i = 0; i < MEMORY_COUNT; i++)
-            {
-                memories[i] = 0;
-            }
+
             gen = tgen;
             mouthHue = tmouthHue;
         }
 
-        public void drawBrain(float scaleUp, int mX, int mY)
+        public void decideWhatToDo(double timeStep, bool useOutput)
         {
-            const float neuronSize = 0.4f;
-            this.graphics.noStroke();
-            this.graphics.fill(0, 0, 0.4f);
-            this.graphics.rect((-1.7f - neuronSize)*scaleUp, -neuronSize*scaleUp, (2.4f + BRAIN_WIDTH + neuronSize*2)*scaleUp,
-                (BRAIN_HEIGHT + neuronSize*2)*scaleUp);
-
-            this.graphics.ellipseMode(EllipseMode.RADIUS);
-            this.graphics.strokeWeight(2);
-            this.graphics.textSize(0.58f*scaleUp);
-            this.graphics.fill(0, 0, 1);
-            string[] inputLabels =
-            {
-                "0Hue", "0Sat", "0Bri", "1Hue",
-                "1Sat", "1Bri", "2Hue", "2Sat", "2Bri", "Size", "Mem", "Const."
-            };
-            string[] outputLabels =
-            {
-                "BHue", "MHue", "Accel.", "Turn", "Eat", "Fight", "Birth", "How funny?",
-                "How popular?", "How generous?", "Mem", "Const."
-            };
-            for (var y = 0; y < BRAIN_HEIGHT; y++)
-            {
-                this.graphics.textAlign(AlignText.RIGHT);
-                this.graphics.text(inputLabels[y], (-neuronSize - 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
-                this.graphics.textAlign(AlignText.LEFT);
-                this.graphics.text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f)*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
-            }
-            this.graphics.textAlign(AlignText.CENTER);
-            for (var x = 0; x < BRAIN_WIDTH; x++)
-            {
-                for (var y = 0; y < BRAIN_HEIGHT; y++)
-                {
-                    this.graphics.noStroke();
-                    var val = neurons[x, y];
-                    this.graphics.fill(neuronFillColor(val));
-                    this.graphics.ellipse(x*scaleUp, y*scaleUp, neuronSize*scaleUp, neuronSize*scaleUp);
-                    this.graphics.fill(neuronTextColor(val));
-                    this.graphics.text(((float) val).ToString(0, 1), x*scaleUp, (y + (neuronSize*0.6f))*scaleUp);
-                }
-            }
-            if (mX >= 0 && mX < BRAIN_WIDTH && mY >= 0 && mY < BRAIN_HEIGHT)
-            {
-                for (var y = 0; y < BRAIN_HEIGHT; y++)
-                {
-                    if (mX >= 1 && mY < BRAIN_HEIGHT - 1)
-                    {
-                        drawAxon(mX - 1, y, mX, mY, scaleUp);
-                    }
-                    if (mX < BRAIN_WIDTH - 1 && y < BRAIN_HEIGHT - 1)
-                    {
-                        drawAxon(mX, mY, mX + 1, y, scaleUp);
-                    }
-                }
-            }
-        }
-
-        public void drawAxon(int x1, int y1, int x2, int y2, float scaleUp)
-        {
-            this.graphics.stroke(neuronFillColor(axons[x1, y1, y2].weight*neurons[x1, y1]));
-
-            this.graphics.line(x1*scaleUp, y1*scaleUp, x2*scaleUp, y2*scaleUp);
-        }
-
-        public void useBrain(double timeStep, bool useOutput)
-        {
-            for (var i = 0; i < 9; i++)
-            {
-                neurons[0, i] = visionResults[i];
-            }
-            neurons[0, 9] = energy;
-            for (var i = 0; i < MEMORY_COUNT; i++)
-            {
-                neurons[0, 10 + i] = memories[i];
-            }
-            for (var x = 1; x < BRAIN_WIDTH; x++)
-            {
-                for (var y = 0; y < BRAIN_HEIGHT - 1; y++)
-                {
-                    double total = 0;
-                    for (var input = 0; input < BRAIN_HEIGHT; input++)
-                    {
-                        total += neurons[x - 1, input]*axons[x - 1, input, y].weight;
-                    }
-                    if (x == BRAIN_WIDTH - 1)
-                    {
-                        neurons[x, y] = total;
-                    }
-                    else
-                    {
-                        neurons[x, y] = sigmoid(total);
-                    }
-                }
-            }
+            if (this.id == 25)
+                visionResults.OutputToConsole();
+            
+            var outputs = this.brain.useBrain(this.energy, visionResults);
 
             if (useOutput)
             {
-                const int end = BRAIN_WIDTH - 1;
-                this.myColor.Hue = (float) Math.Min(Math.Max(neurons[end, 0], 0), 1);
-                this.mouthHue = Math.Min(Math.Max(neurons[end, 1], 0), 1);
-                this.accelerate(neurons[end, 2], timeStep);
-                this.turn(neurons[end, 3], timeStep);
-                this.eat(neurons[end, 4], timeStep);
-                this.fight(neurons[end, 5], timeStep);
+                this.myColor.Hue = (float) Math.Min(Math.Max(outputs[0], 0), 1);
+                this.mouthHue = Math.Min(Math.Max(outputs[1], 0), 1);
+                this.accelerate(outputs[2], timeStep);
+                this.turn(outputs[3], timeStep);
+                this.eat(outputs[4], timeStep);
+                this.fight(outputs[5], timeStep);
 
-                if (neurons[end, 6] > 0 && board.year - birthTime >= MATURE_AGE && energy > SAFE_SIZE)
+                if (outputs[6] > 0 && board.year - birthTime >= MATURE_AGE && energy > SAFE_SIZE)
                     this.reproduce(SAFE_SIZE, timeStep);
-
-                for (var i = 0; i < MEMORY_COUNT; i++)
-                    this.memories[i] = neurons[end, 10 + i];
             }
-        }
-
-        public double sigmoid(double input)
-        {
-            return 1.0/(1.0 + Math.Pow(2.71828182846, -input));
-        }
-
-        public HSBColor neuronFillColor(double d)
-        {
-            if (d >= 0)
-            {
-                return new HSBColor(0, 0, 1, (float) (d));
-            }
-            return new HSBColor(0, 0, 0, (float) (-d));
-        }
-
-        public HSBColor neuronTextColor(double d)
-        {
-            if (d >= 0)
-            {
-                return new HSBColor(0, 0, 0);
-            }
-            return new HSBColor(0, 0, 1);
         }
 
         public void drawSoftBody(float scaleUp, float camZoom, bool showVision)
@@ -570,13 +412,16 @@ namespace core
             }
         }
 
-        public void returnToEarth()
+        public void killAndReturnToEarth()
         {
-            var pieces = 20;
+            this.dead = true;
+
+            const int pieces = 20;
             for (var i = 0; i < pieces; i++)
             {
                 getRandomCoveredTile().addFood((float) energy/pieces, (float) this.myColor.Hue);
             }
+
             for (var x = SBIPMinX; x <= SBIPMaxX; x++)
             {
                 for (var y = SBIPMinY; y <= SBIPMaxY; y++)
@@ -584,84 +429,55 @@ namespace core
                     board.softBodiesInPositions[x, y].Remove(this);
                 }
             }
-            if (board.selectedCreature == this)
-            {
-                board.unselect();
-            }
         }
 
         public void reproduce(double babySize, double timeStep)
         {
             if (colliders == null)
-            {
                 collide(timeStep);
-            }
+
             var highestGen = 0;
             if (babySize >= 0)
             {
-                var parents = new List<Creature>(0);
-                parents.Add(this);
+                var parentCreatures = new List<Creature>();
+                parentCreatures.Add(this);
                 var availableEnergy = getBabyEnergy();
-                for (var i = 0; i < colliders.Count; i++)
+                foreach (var body in colliders)
                 {
-                    var possibleParent = colliders[i];
-                    if (possibleParent.isCreature && ((Creature) possibleParent).neurons[BRAIN_WIDTH - 1, 9] > -1)
+                    var possibleParent = body as Creature;
+                    if (possibleParent != null && possibleParent.brain.wantsToGiveBirth())
                     {
                         // Must be a WILLING creature to also give birth.
-                        var distance = MathEx.Distance((float) px, (float) py, (float) possibleParent.px, (float) possibleParent.py);
+                        var distance = MathEx.Distance((float) px, (float) py, (float) possibleParent.px,
+                            (float) possibleParent.py);
                         var combinedRadius = getRadius()*FIGHT_RANGE + possibleParent.getRadius();
                         if (distance < combinedRadius)
                         {
-                            parents.Add((Creature) possibleParent);
-                            availableEnergy += ((Creature) possibleParent).getBabyEnergy();
+                            parentCreatures.Add(possibleParent);
+                            availableEnergy += (possibleParent).getBabyEnergy();
                         }
                     }
                 }
+
+                var parentBrains = parentCreatures.Select(p => p.brain).ToArray();
                 if (availableEnergy > babySize)
                 {
                     double newPX = Rnd.nextFloat(-0.01, 0.01);
                     double newPY = Rnd.nextFloat(-0.01, 0.01);
-                        //To avoid landing directly on parents, resulting in division by 0)
+                    //To avoid landing directly on parents, resulting in division by 0)
 
                     double newMouthHue = 0;
-                    var parentsTotal = parents.Count;
+                    var parentsTotal = parentCreatures.Count;
                     var parentNames = new string[parentsTotal];
-                    var newBrain = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT - 1];
-                    var newNeurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
-                    float randomParentRotation = Rnd.nextFloat(0, 1);
-                    for (var x = 0; x < BRAIN_WIDTH - 1; x++)
-                    {
-                        for (var y = 0; y < BRAIN_HEIGHT; y++)
-                        {
-                            for (var z = 0; z < BRAIN_HEIGHT - 1; z++)
-                            {
-                                var axonAngle =
-                                    (float)
-                                        (Math.Atan2((y + z)/2.0 - BRAIN_HEIGHT/2.0, x - BRAIN_WIDTH/2)/(2*Math.PI) +
-                                         Math.PI);
-                                var parentForAxon =
-                                    parents[((int) (((axonAngle + randomParentRotation)%1.0)*parentsTotal))];
-                                newBrain[x, y, z] = parentForAxon.axons[x, y, z].mutateAxon();
-                            }
-                        }
-                    }
-                    for (var x = 0; x < BRAIN_WIDTH; x++)
-                    {
-                        for (var y = 0; y < BRAIN_HEIGHT; y++)
-                        {
-                            var axonAngle =
-                                (float) (Math.Atan2(y - BRAIN_HEIGHT/2.0, x - BRAIN_WIDTH/2)/(2*Math.PI) + Math.PI);
-                            var parentForAxon = parents[(int) (((axonAngle + randomParentRotation)%1.0)*parentsTotal)];
-                            newNeurons[x, y] = parentForAxon.neurons[x, y];
-                        }
-                    }
 
+                    var newBrain = Brain.spawnFrom(parentBrains);
+                    
                     var newColor = new HSBColor(0, 1, 1);
                     for (var i = 0; i < parentsTotal; i++)
                     {
-                        var chosenIndex = Rnd.nextInt(0, parents.Count);
-                        var parent = parents[chosenIndex];
-                        parents.RemoveAt(chosenIndex);
+                        var chosenIndex = Rnd.nextInt(0, parentCreatures.Count);
+                        var parent = parentCreatures[chosenIndex];
+                        parentCreatures.RemoveAt(chosenIndex);
                         parent.energy -= babySize*(parent.getBabyEnergy()/availableEnergy);
                         newPX += parent.px/parentsTotal;
                         newPY += parent.py/parentsTotal;
@@ -678,7 +494,7 @@ namespace core
                         babySize, density, newColor, board, board.year,
                         Rnd.nextFloat(0, 2*Math.PI), 0,
                         stitchName(parentNames), andifyParents(parentNames), true,
-                        newBrain, newNeurons, highestGen + 1, newMouthHue));
+                        newBrain, highestGen + 1, newMouthHue));
                 }
             }
         }
