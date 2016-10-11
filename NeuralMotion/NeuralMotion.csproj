@@ -1,0 +1,263 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B62C0990-B78C-416B-8A68-9A68BBEEE0C4}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NeuralMotion</RootNamespace>
+    <AssemblyName>NeuralMotion</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Accord, Version=3.0.2.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accord.3.0.2\lib\net45\Accord.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Accord.Math, Version=3.0.2.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accord.Math.3.0.2\lib\net45\Accord.Math.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Accord.Neuro, Version=3.0.2.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accord.Neuro.3.0.2\lib\net45\Accord.Neuro.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GeneticSharp.Domain, Version=1.0.5894.2743, Culture=neutral, PublicKeyToken=d63d2a65268366c6, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeneticSharp.1.0.100\lib\net35\GeneticSharp.Domain.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GeneticSharp.Extensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f24c5e2578f0ecff, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeneticSharp.1.0.100\lib\net35\GeneticSharp.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GeneticSharp.Infrastructure.Framework, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f24c5e2578f0ecff, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeneticSharp.1.0.100\lib\net35\GeneticSharp.Infrastructure.Framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GeneticSharp.Infrastructure.Threading, Version=1.0.5894.2743, Culture=neutral, PublicKeyToken=f24c5e2578f0ecff, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeneticSharp.1.0.100\lib\net35\GeneticSharp.Infrastructure.Threading.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="HelperSharp, Version=1.0.5560.27038, Culture=neutral, PublicKeyToken=3d44152485e1a4e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeneticSharp.1.0.100\lib\net35\HelperSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NCalc, Version=1.3.8.0, Culture=neutral, PublicKeyToken=973cde3f1cafed03, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeneticSharp.1.0.100\lib\net35\NCalc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.Core.1.0.0-unstable2100\lib\net45\OxyPlot.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OxyPlot.WindowsForms, Version=1.0.0.0, Culture=neutral, PublicKeyToken=245eacd6b5d2d338, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.WindowsForms.1.0.0-unstable2100\lib\net45\OxyPlot.WindowsForms.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SmartThreadPool, Version=2.2.3.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
+      <HintPath>..\packages\SmartThreadPool.dll.2.2.3\lib\SmartThreadPool.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="ZedGraph, Version=5.1.7.430, Culture=neutral, PublicKeyToken=02a83cbd123fcd60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZedGraph.5.1.7\lib\net35-Client\ZedGraph.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Views\BallDisplay.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\BallDisplay.Designer.cs">
+      <DependentUpon>BallDisplay.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Evolution\Annealing\SimulatedAnnealing.cs" />
+    <Compile Include="Evolution\ChromosomeEvolverExtensions.cs" />
+    <Compile Include="Evolution\Custom\BruteForceSearch.cs" />
+    <Compile Include="Evolution\GeneticSharp\AllZerosFitness.cs" />
+    <Compile Include="Evolution\GeneticSharp\ConfigChromosome.cs" />
+    <Compile Include="Evolution\GeneticSharp\InverseDistanceFromValuesFitness.cs" />
+    <Compile Include="Evolution\GeneticSharp\Validations\CrossoverValidator.cs" />
+    <Compile Include="Evolution\GeneticSharp\Validations\MutationValidator.cs" />
+    <Compile Include="Evolution\GeneticSharp\Validations\ReinsertionValidator.cs" />
+    <Compile Include="Evolution\GeneticSharp\Validations\SelectionValidator.cs" />
+    <Compile Include="Evolution\GeneticSharp\Validations\ValidationException.cs" />
+    <Compile Include="Evolution\GeneticSharp\FixedPositionBasedCrossover.cs" />
+    <Compile Include="Evolution\GeneticSharp\Config\IConfig.cs" />
+    <Compile Include="Evolution\GeneticSharp\KeepBestParentsReinsertion.cs" />
+    <Compile Include="Evolution\GeneticSharp\Config\RandomConfig.cs" />
+    <Compile Include="Evolution\GeneticSharp\NumberMutation.cs" />
+    <Compile Include="Evolution\GeneticSharp\TargetSumFitness.cs" />
+    <Compile Include="Evolution\GeneticSharp\Validations\ValidatedConfig.cs" />
+    <Compile Include="Evolution\IEvolver.cs" />
+    <Compile Include="Evolution\Neat\BaseNeatExperiment.cs" />
+    <Compile Include="Evolution\Neat\BlackBoxEvaluator.cs" />
+    <Compile Include="Evolution\Neat\DecodeToCyclicNetwork.cs" />
+    <Compile Include="Evolution\Neat\NeatInverseDistanceFromValuesFitness.cs" />
+    <Compile Include="Evolution\Neat\PrivateFunctionRegressionTest.cs" />
+    <Compile Include="Evolution\ParameterAdjuster.cs" />
+    <Compile Include="Evolution\BallExtensions.cs" />
+    <Compile Include="Evolution\BallFitness.cs" />
+    <Compile Include="Evolution\GeneticSharp\ArrayChromosome.cs" />
+    <Compile Include="Evolution\GeneticSharp\Evolver.cs" />
+    <Compile Include="Evolution\GeneticSharp\Executor.cs" />
+    <Compile Include="Evolution\HandcraftedEvolver.cs" />
+    <Compile Include="Evolution\DetermineFitnessBySimulation.cs" />
+    <Compile Include="Evolution\IChromosomeEvolver.cs" />
+    <Compile Include="Evolution\Custom\ShrinkingRadiusSearch.cs" />
+    <Compile Include="Evolution\Supervised\Backpropagator.cs" />
+    <Compile Include="Data\IFunctionResponse.cs" />
+    <Compile Include="Intelligence\SelectClosestAndDistancesInPolar.cs" />
+    <Compile Include="Views\FitnessPlot.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Views\MultipleFunctionView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\MultipleFunctionView.Designer.cs">
+      <DependentUpon>MultipleFunctionView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Parallel\ParallelProxy.cs" />
+    <Compile Include="Intelligence\SimpleBrain.cs" />
+    <Compile Include="Simulator\Ball.cs" />
+    <Compile Include="Simulator\CollisionDetector.cs" />
+    <Compile Include="Intelligence\IBrain.cs" />
+    <Compile Include="Intelligence\IInputSelectionStrategy.cs" />
+    <Compile Include="Settings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Settings.Designer.cs">
+      <DependentUpon>Settings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Main.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Main.Designer.cs">
+      <DependentUpon>Main.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TreeModel\AllNodes.cs" />
+    <Compile Include="TreeModel\BaseNode.cs" />
+    <Compile Include="TreeModel\Constant.cs" />
+    <Compile Include="TreeModel\Cos.cs" />
+    <Compile Include="TreeModel\Div.cs" />
+    <Compile Include="TreeModel\Linear.cs" />
+    <Compile Include="TreeModel\Minus.cs" />
+    <Compile Include="TreeModel\Multi.cs" />
+    <Compile Include="TreeModel\Plus.cs" />
+    <Compile Include="TreeModel\Sin.cs" />
+    <Compile Include="TreeModel\State.cs" />
+    <Compile Include="TreeModel\TreeLocValue.cs" />
+    <Compile Include="Data\WaveformTarget.cs" />
+    <EmbeddedResource Include="Views\BallDisplay.resx">
+      <DependentUpon>BallDisplay.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Views\MultipleFunctionView.resx">
+      <DependentUpon>MultipleFunctionView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Settings.resx">
+      <DependentUpon>Settings.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Main.resx">
+      <DependentUpon>Main.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Intelligence\SelectCurrentTimeAndBallPositions.cs" />
+    <Compile Include="Simulator\BoxArena.cs" />
+    <Compile Include="Intelligence\ActivationNetworkBrain.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SharpNeatDomains\SharpNeatDomains.csproj">
+      <Project>{73ab8c8c-6315-4dc7-a3de-3c747f86ac78}</Project>
+      <Name>SharpNeatDomains</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SharpNeatLib\SharpNeatLib.csproj">
+      <Project>{abc5c77a-deba-420c-926c-bd3e6f37ae15}</Project>
+      <Name>SharpNeatLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Util\Util.csproj">
+      <Project>{172B8011-568F-48DC-921F-9D9A0528537F}</Project>
+      <Name>Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\Resources\light.wav" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Accord.3.0.2\build\Accord.targets" Condition="Exists('..\packages\Accord.3.0.2\build\Accord.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Accord.3.0.2\build\Accord.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accord.3.0.2\build\Accord.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
