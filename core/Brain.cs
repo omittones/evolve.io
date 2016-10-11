@@ -28,28 +28,18 @@ namespace core
                 {
                     for (var z = 0; z < BRAIN_HEIGHT - 1; z++)
                     {
-                        var startingWeight = 0.0;
-                        if (y == BRAIN_HEIGHT - 1)
-                            startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
+                        var startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
                         axons[x, y, z] = new Axon(startingWeight, AXON_START_MUTABILITY);
                     }
                 }
             }
             neurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
             for (var x = 0; x < BRAIN_WIDTH; x++)
-            {
                 for (var y = 0; y < BRAIN_HEIGHT; y++)
-                {
                     if (y == BRAIN_HEIGHT - 1)
-                    {
                         neurons[x, y] = 1;
-                    }
                     else
-                    {
                         neurons[x, y] = 0;
-                    }
-                }
-            }
         }
 
         public Brain(Axon[,,] axons, double[,] neurons)
