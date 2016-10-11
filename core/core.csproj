@@ -49,6 +49,7 @@
     <Compile Include="Axon.cs" />
     <Compile Include="Board.cs" />
     <Compile Include="Brain.cs" />
+    <Compile Include="Graphics\MatrixScope.cs" />
     <Compile Include="InputEngine.cs" />
     <Compile Include="Graphics\NormalDrawer.cs" />
     <Compile Include="Graphics\EllipseMode.cs" />

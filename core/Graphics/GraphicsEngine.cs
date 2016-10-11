@@ -69,7 +69,9 @@ namespace core.Graphics
         public void noStroke()
         {
             this.normalDrawer.StrokeWidth = 0;
+            this.normalDrawer.StrokeColor = Color.Transparent;
             this.fillDrawer.StrokeWidth = 0;
+            this.fillDrawer.StrokeColor = Color.Transparent;
         }
 
         public void saveFrame(string filename)
@@ -106,15 +108,14 @@ namespace core.Graphics
             this.transMatrix.Push(this.engine.Transform.Clone());
         }
 
-        public void ellipseMode(EllipseMode mode)
+        public MatrixScope newTransformScope()
         {
-            if (mode == EllipseMode.OTHER)
-                throw new NotSupportedException();
+            return new MatrixScope(this.engine);
         }
 
-        public void ellipse(float x, float y, float width = 0, float height = 0)
+        public void ellipse(float centerX, float centerY, float radiusX = 0, float radiusY = 0)
         {
-            this.drawer.Ellipse(x - width, y - height, width*2, height*2);
+            this.drawer.Ellipse(centerX - radiusX, centerY - radiusY, radiusX*2, radiusY*2);
         }
 
         public void line(double x1, double y1, double x2, double y2)
@@ -151,6 +152,20 @@ namespace core.Graphics
         {
             this.normalDrawer.Font = new Font(this.normalDrawer.Font.FontFamily, size/1.5f, GraphicsUnit.Pixel);
             this.fillDrawer.Font = this.normalDrawer.Font;
+        }
+
+        public PointF transformFromWorld(float x, float y)
+        {
+            var points = new[] {new PointF(x, y)};
+            this.engine.TransformPoints(CoordinateSpace.Device, CoordinateSpace.World, points);
+            return points[0];
+        }
+
+        public PointF transformToWorld(float x, float y)
+        {
+            var points = new[] { new PointF(x, y) };
+            this.engine.TransformPoints(CoordinateSpace.World, CoordinateSpace.Device, points);
+            return points[0];
         }
     }
 }

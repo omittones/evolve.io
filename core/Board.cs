@@ -259,16 +259,13 @@ namespace core
                     Math.Round((MANUAL_BIRTH_SIZE + 1)*100) + " yums)", 10, 625, 250, 400);
             }
 
-            this.graphics.pushMatrix();
-            this.graphics.translate(300, 100);
-            this.graphics.scale(500.0f);
-            
-            var apX = Math.Round((this.input.MouseX - 264 - x1)/26.0);
-            var apY = Math.Round((this.input.MouseY - 80 - y1)/26.0);
+            using (this.graphics.newTransformScope())
+            {
+                this.graphics.translate(250, 100);
+                this.graphics.scale(500.0f);
 
-            //selectedCreature.brain.draw(this.graphics, (int) apX, (int) apY);
-
-            this.graphics.popMatrix();
+                selectedCreature.brain.draw(this.graphics, this.input.MouseX, this.input.MouseY);
+            }
         }
 
         private void drawTopCreatures(float scaleUp, int x1, int y1, int x2)

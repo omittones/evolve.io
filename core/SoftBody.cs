@@ -176,7 +176,6 @@ namespace core
             this.graphics.stroke(0, 0, 0);
             this.graphics.strokeWeight(2);
             this.graphics.fill(this.myColor);
-            this.graphics.ellipseMode(EllipseMode.RADIUS);
             this.graphics.ellipse((float) (px*scaleUp), (float) (py*scaleUp), (float) (radius*scaleUp), (float) (radius*scaleUp));
         }
 

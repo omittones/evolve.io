@@ -118,7 +118,6 @@ namespace core
 
         public void drawSoftBody(float scaleUp, float camZoom, bool showVision)
         {
-            this.graphics.ellipseMode(EllipseMode.RADIUS);
             var radius = getRadius();
             if (showVision)
             {
@@ -175,7 +174,6 @@ namespace core
             this.graphics.noFill();
             this.graphics.strokeWeight(2);
             this.graphics.stroke(0, 0, 1);
-            this.graphics.ellipseMode(EllipseMode.RADIUS);
             this.graphics.ellipse((float)(px * scaleUp), (float)(py * scaleUp), Board.MINIMUM_SURVIVABLE_SIZE * scaleUp, Board.MINIMUM_SURVIVABLE_SIZE * scaleUp);
             this.graphics.pushMatrix();
             this.graphics.translate((float)(px * scaleUp), (float)(py * scaleUp));

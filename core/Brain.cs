@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using core.Graphics;
 
 namespace core
@@ -13,8 +12,8 @@ namespace core
         private const int MEMORY_COUNT = 1;
 
         private readonly Axon[,,] axons;
-        private readonly double[,] neurons;
         private readonly double[] memories;
+        private readonly double[,] neurons;
         private readonly double[] outputs;
 
         public Brain()
@@ -108,7 +107,7 @@ namespace core
             for (var i = 0; i < 9; i++)
                 neurons[0, i] = visionResults[i];
             neurons[0, 9] = energy;
-            for (var i = 0; i < MEMORY_COUNT; i++)
+            for (var i = 0; i < memories.Length; i++)
                 neurons[0, 10 + i] = memories[i];
 
             for (var x = 1; x < BRAIN_WIDTH; x++)
@@ -140,11 +139,11 @@ namespace core
             return 1.0 / (1.0 + Math.Pow(2.71828182846, -input));
         }
 
+        private const float neuronSize = 0.3f;
+        private const float widthToHeightScale = (float)BRAIN_WIDTH / BRAIN_HEIGHT;
+
         public void draw(GraphicsEngine graphics, int highlightAtX, int highlightAtY)
         {
-            const float neuronSize = 0.3f;
-            const float widthToHeightScale = (float) BRAIN_WIDTH/BRAIN_HEIGHT;
-
             graphics.noStroke();
             graphics.fill(0, 0, 0.4f);
             graphics.rect(0, 0, widthToHeightScale + 0.35f, 1);
@@ -153,12 +152,61 @@ namespace core
             graphics.scale(1.0f/BRAIN_HEIGHT);
             graphics.translate(1.7f, 0.5f);
 
-            for (var xFrom = 0; xFrom < BRAIN_WIDTH - 1; xFrom++)
-                for (var yFrom = 0; yFrom < BRAIN_HEIGHT; yFrom++)
-                    for (var yTo = 0; yTo < BRAIN_HEIGHT - 1; yTo++)
-                        drawAxon(graphics, xFrom, yFrom, xFrom + 1, yTo);
+            this.drawLabels(graphics);
 
-            graphics.ellipseMode(EllipseMode.RADIUS);
+            var coord = graphics.transformToWorld(highlightAtX, highlightAtY);
+            var highX = (int)Math.Round(coord.X);
+            var highY = (int)Math.Round(coord.Y);
+
+            this.showAxons(graphics, highX, highY);
+
+            graphics.textAlign(AlignText.CENTER);
+            for (var x = 0; x < BRAIN_WIDTH; x++)
+            {
+                for (var y = 0; y < BRAIN_HEIGHT; y++)
+                {
+                    var val = neurons[x, y];
+                    var textColor = neuronTextColor(val);
+
+                    graphics.noStroke();
+                    graphics.fill(neuronFillColor(val));
+                    graphics.ellipse(x, y, neuronSize, neuronSize);
+                    graphics.textSize(neuronSize*1.2f);
+                    graphics.fill(textColor);
+                    graphics.text(val.ToString("0.00"), x, (y + (neuronSize*0.6f)));
+
+                    if (highX == x && highY == y)
+                    {
+                        graphics.noFill();
+                        graphics.stroke(textColor);
+                        graphics.strokeWeight(0.1f);
+                        graphics.ellipse(x, y, neuronSize, neuronSize);
+                    }
+                }
+            }
+
+            graphics.popMatrix();
+        }
+
+        private void showAxons(GraphicsEngine graphics, int neuronX, int neuronY)
+        {
+            if (neuronX >= 0 && neuronX < BRAIN_WIDTH)
+            {
+                var maxY = axons.GetUpperBound(neuronX);
+                if (neuronY >= 0 && neuronY < maxY)
+                {
+                    if (neuronX > 0)
+                        for (var i = 0; i < axons.GetUpperBound(neuronX - 1); i++)
+                            drawAxon(graphics, neuronX - 1, i, neuronX, neuronY);
+                    if (neuronX < BRAIN_WIDTH - 1)
+                        for (var i = 0; i < axons.GetUpperBound(neuronX + 1); i++)
+                            drawAxon(graphics, neuronX, neuronY, neuronX + 1, i);
+                }
+            }
+        }
+
+        private void drawLabels(GraphicsEngine graphics)
+        {
             graphics.strokeWeight(2);
             graphics.textSize(0.58f);
             graphics.fill(0, 0, 1);
@@ -177,29 +225,14 @@ namespace core
                 graphics.textAlign(AlignText.RIGHT);
                 graphics.text(inputLabels[y], (-neuronSize - 0.1f), (y + (neuronSize*0.6f)));
                 graphics.textAlign(AlignText.LEFT);
-                graphics.text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f),
-                    (y + (neuronSize*0.6f)));
+                graphics.text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f), (y + (neuronSize*0.6f)));
             }
-            graphics.textAlign(AlignText.CENTER);
-            for (var x = 0; x < BRAIN_WIDTH; x++)
-            {
-                for (var y = 0; y < BRAIN_HEIGHT; y++)
-                {
-                    graphics.noStroke();
-                    var val = neurons[x, y];
-                    graphics.fill(neuronFillColor(val));
-                    graphics.ellipse(x, y, neuronSize, neuronSize);
-                    graphics.fill(neuronTextColor(val));
-                    graphics.text(((float) val).ToString(0, 1), x, (y + (neuronSize*0.6f)));
-                }
-            }
-
-            graphics.popMatrix();
         }
 
         private void drawAxon(GraphicsEngine graphics, int xFrom, int yFrom, int xTo, int yTo)
         {
-            graphics.stroke(neuronFillColor(axons[xFrom, yFrom, yTo].weight*neurons[xFrom, yFrom]));
+            graphics.stroke(neuronFillColor(axons[xFrom, yFrom, yTo].weight));
+            graphics.strokeWeight(0.05f);
             graphics.line(xFrom, yFrom, xTo, yTo);
         }
 
