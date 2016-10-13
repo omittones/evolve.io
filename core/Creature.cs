@@ -213,6 +213,7 @@ namespace core
 
         public void turn(double amount, double timeStep)
         {
+            amount = (amount - 0.5)*2.0;
             vr += 0.04*amount*timeStep/getMass();
             loseEnergy(Math.Abs(amount*TURN_ENERGY*energy*timeStep));
         }

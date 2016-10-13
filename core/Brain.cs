@@ -17,20 +17,28 @@ namespace core
         private readonly double[,] neurons;
         private readonly double[] outputs;
 
-        public Brain()
+        public Brain(bool initToZero = false)
         {
             memories = new double[MEMORY_COUNT];
             outputs = new double[BRAIN_HEIGHT];
             axons = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT];
             neurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
+
             for (var x = 0; x < BRAIN_WIDTH - 1; x++)
             {
                 for (var y = 0; y < BRAIN_HEIGHT; y++)
                 {
                     for (var z = 0; z < BRAIN_HEIGHT; z++)
                     {
-                        var startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
-                        axons[x, y, z] = new Axon(startingWeight, AXON_START_MUTABILITY);
+                        if (initToZero)
+                        {
+                            axons[x, y, z] = new Axon(0, 0);
+                        }
+                        else
+                        {
+                            var startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
+                            axons[x, y, z] = new Axon(startingWeight, AXON_START_MUTABILITY);
+                        }
                     }
                 }
             }
@@ -40,45 +48,49 @@ namespace core
                 for (var y = 0; y < BRAIN_HEIGHT; y++)
                     neurons[x, y] = 0;
         }
-
-        public Brain(Axon[,,] axons, double[,] neurons)
+        
+        private Axon axon(int fromNeuronY, int toNeuronX, int toNeuronY)
         {
-            this.memories = new double[MEMORY_COUNT];
-            this.outputs = new double[BRAIN_HEIGHT];
-            this.axons = axons;
-            this.neurons = neurons;
+            return axons[toNeuronX - 1, fromNeuronY, toNeuronY];
         }
 
         public static Brain spawnFrom(Brain[] parents)
         {
-            var newBrain = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT];
-            var newNeurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
-            var randomParentRotation = Rnd.nextFloat(0, 1);
+            var child = new Brain(true);
 
-            for (var x = 0; x < BRAIN_WIDTH; x++)
+            for (var xLayer = 1; xLayer < BRAIN_WIDTH; xLayer++)
             {
-                for (var y = 0; y < BRAIN_HEIGHT; y++)
+                for (var xNeuron = 0; xNeuron < BRAIN_HEIGHT; xNeuron++)
                 {
-                    for (var z = 0; z < BRAIN_HEIGHT; z++)
+                    var startingParent = Rnd.nextInt(0, parents.Length);
+                    var parentRatio = 0.5;
+                    var parentRatioSum = 0.0;
+                    for (var p = 0; p < parents.Length; p++)
                     {
-                        var axonAngle = Math.Atan2((y + z)/2.0f - BRAIN_HEIGHT/2.0f, x - BRAIN_WIDTH/2)/(2*Math.PI) + Math.PI;
-                        var parentForAxon = parents[(int) (((axonAngle + randomParentRotation)%1.0)*parents.Length)];
-                        newBrain[x, y, z] = parentForAxon.axons[x, y, z].mutateAxon();
+                        var currentParent = parents[(startingParent + p)%parents.Length];
+
+                        for (var xPrevNeuron = 0; xPrevNeuron < BRAIN_HEIGHT; xPrevNeuron++)
+                        {
+                            var childAxon = child.axon(xPrevNeuron, xLayer, xNeuron);
+                            var parentAxon = currentParent.axon(xPrevNeuron, xLayer, xNeuron);
+                            childAxon.weight += parentAxon.weight*parentRatio;
+                            childAxon.mutability += parentAxon.mutability*parentRatio;
+                        }
+
+                        parentRatioSum += parentRatio;
+                        parentRatio = parentRatio*0.8;
+                    }
+
+                    for (var xPrevNeuron = 0; xPrevNeuron < BRAIN_HEIGHT; xPrevNeuron++)
+                    {
+                        var childAxon = child.axon(xPrevNeuron, xLayer, xNeuron);
+                        childAxon.weight /= parentRatioSum;
+                        childAxon.mutability /= parentRatioSum;
                     }
                 }
             }
 
-            for (var x = 0; x < BRAIN_WIDTH; x++)
-            {
-                for (var y = 0; y < BRAIN_HEIGHT; y++)
-                {
-                    var axonAngle = Math.Atan2(y - BRAIN_HEIGHT/2.0, x - BRAIN_WIDTH/2)/(2*Math.PI) + Math.PI;
-                    var parentForAxon = parents[(int) (((axonAngle + randomParentRotation)%1.0)*parents.Length)];
-                    newNeurons[x, y] = parentForAxon.neurons[x, y];
-                }
-            }
-
-            return new Brain(newBrain, newNeurons);
+            return child;
         }
 
         public bool wantsToGiveBirth()
@@ -100,14 +112,18 @@ namespace core
                 neurons[0, 10 + i] = memories[i];
             neurons[0, 10 + memories.Length] = 1;
 
-            for (var xLayer = 1; xLayer < BRAIN_WIDTH; xLayer++)
+            for (var toLayer = 1; toLayer < BRAIN_WIDTH; toLayer++)
             {
-                for (var xNeuron = 0; xNeuron < BRAIN_HEIGHT; xNeuron++)
+                for (var toNeuron = 0; toNeuron < BRAIN_HEIGHT; toNeuron++)
                 {
                     double total = 0;
-                    for (var xInputNeuron = 0; xInputNeuron < BRAIN_HEIGHT; xInputNeuron++)
-                        total += neurons[xLayer - 1, xInputNeuron]*axons[xLayer - 1, xInputNeuron, xNeuron].weight;
-                    neurons[xLayer, xNeuron] = sigmoid(total);
+                    for (var fromNeuron = 0; fromNeuron < BRAIN_HEIGHT; fromNeuron++)
+                    {
+                        var inputNeuron = neurons[toLayer - 1, fromNeuron];
+                        var connectingAxon = axon(fromNeuron, toLayer, toNeuron);
+                        total += inputNeuron*connectingAxon.weight;
+                    }
+                    neurons[toLayer, toNeuron] = sigmoid(total);
                 }
             }
 
@@ -210,7 +226,7 @@ namespace core
             string[] outputLabels =
             {
                 "BHue", "MHue", "Accel.", "Turn", "Eat", "Fight", "Birth", "How funny?",
-                "How popular?", "How generous?", "Mem", "Const."
+                "How popular?", "How generous?", "Unused", "Unused"
             };
             for (var y = 0; y < BRAIN_HEIGHT; y++)
             {

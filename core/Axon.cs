@@ -7,8 +7,8 @@ namespace core
         private readonly double MUTATE_MULTI;
         private const double MUTABILITY_MUTABILITY = 0.7;
         private const int MUTATE_POWER = 9;
-        public readonly double weight;
-        public readonly double mutability;
+        public double weight;
+        public double mutability;
 
         public Axon(double weight, double mutability)
         {
