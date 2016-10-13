@@ -97,9 +97,6 @@ namespace core
 
         public void decideWhatToDo(double timeStep, bool useOutput)
         {
-            if (this.id == 25)
-                visionResults.OutputToConsole();
-            
             var outputs = this.brain.useBrain(this.energy, visionResults);
 
             if (useOutput)

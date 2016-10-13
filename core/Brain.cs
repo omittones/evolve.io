@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using core.Graphics;
 
 namespace core
@@ -18,62 +19,50 @@ namespace core
 
         public Brain()
         {
-            outputs = new double[BRAIN_HEIGHT];
             memories = new double[MEMORY_COUNT];
-            axons = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT - 1];
+            outputs = new double[BRAIN_HEIGHT];
+            axons = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT];
             neurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
             for (var x = 0; x < BRAIN_WIDTH - 1; x++)
             {
                 for (var y = 0; y < BRAIN_HEIGHT; y++)
                 {
-                    for (var z = 0; z < BRAIN_HEIGHT - 1; z++)
+                    for (var z = 0; z < BRAIN_HEIGHT; z++)
                     {
-                        var startingWeight = 0.0;
-                        if (y == BRAIN_HEIGHT - 1)
-                            startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
+                        var startingWeight = Rnd.nextFloat(-1, 1)*STARTING_AXON_VARIABILITY;
                         axons[x, y, z] = new Axon(startingWeight, AXON_START_MUTABILITY);
                     }
                 }
             }
+
             neurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
             for (var x = 0; x < BRAIN_WIDTH; x++)
-            {
                 for (var y = 0; y < BRAIN_HEIGHT; y++)
-                {
-                    if (y == BRAIN_HEIGHT - 1)
-                    {
-                        neurons[x, y] = 1;
-                    }
-                    else
-                    {
-                        neurons[x, y] = 0;
-                    }
-                }
-            }
+                    neurons[x, y] = 0;
         }
 
         public Brain(Axon[,,] axons, double[,] neurons)
         {
-            this.outputs = new double[BRAIN_HEIGHT];
             this.memories = new double[MEMORY_COUNT];
+            this.outputs = new double[BRAIN_HEIGHT];
             this.axons = axons;
             this.neurons = neurons;
         }
 
         public static Brain spawnFrom(Brain[] parents)
         {
-            var newBrain = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT - 1];
+            var newBrain = new Axon[BRAIN_WIDTH - 1, BRAIN_HEIGHT, BRAIN_HEIGHT];
             var newNeurons = new double[BRAIN_WIDTH, BRAIN_HEIGHT];
             var randomParentRotation = Rnd.nextFloat(0, 1);
 
-            for (var x = 0; x < BRAIN_WIDTH - 1; x++)
+            for (var x = 0; x < BRAIN_WIDTH; x++)
             {
                 for (var y = 0; y < BRAIN_HEIGHT; y++)
                 {
-                    for (var z = 0; z < BRAIN_HEIGHT - 1; z++)
+                    for (var z = 0; z < BRAIN_HEIGHT; z++)
                     {
                         var axonAngle = Math.Atan2((y + z)/2.0f - BRAIN_HEIGHT/2.0f, x - BRAIN_WIDTH/2)/(2*Math.PI) + Math.PI;
-                        var parentForAxon = parents[((int) (((axonAngle + randomParentRotation)%1.0)*parents.Length))];
+                        var parentForAxon = parents[(int) (((axonAngle + randomParentRotation)%1.0)*parents.Length)];
                         newBrain[x, y, z] = parentForAxon.axons[x, y, z].mutateAxon();
                     }
                 }
@@ -104,24 +93,21 @@ namespace core
             if (visionResults.Length != 9)
                 throw new ApplicationException();
 
-            for (var i = 0; i < 9; i++)
+            for (var i = 0; i < visionResults.Length; i++)
                 neurons[0, i] = visionResults[i];
             neurons[0, 9] = energy;
             for (var i = 0; i < memories.Length; i++)
                 neurons[0, 10 + i] = memories[i];
+            neurons[0, 10 + memories.Length] = 1;
 
-            for (var x = 1; x < BRAIN_WIDTH; x++)
+            for (var xLayer = 1; xLayer < BRAIN_WIDTH; xLayer++)
             {
-                for (var y = 0; y < BRAIN_HEIGHT - 1; y++)
+                for (var xNeuron = 0; xNeuron < BRAIN_HEIGHT; xNeuron++)
                 {
                     double total = 0;
-                    for (var input = 0; input < BRAIN_HEIGHT; input++)
-                        total += neurons[x - 1, input]*axons[x - 1, input, y].weight;
-
-                    if (x == BRAIN_WIDTH - 1)
-                        neurons[x, y] = total;
-                    else
-                        neurons[x, y] = sigmoid(total);
+                    for (var xInputNeuron = 0; xInputNeuron < BRAIN_HEIGHT; xInputNeuron++)
+                        total += neurons[xLayer - 1, xInputNeuron]*axons[xLayer - 1, xInputNeuron, xNeuron].weight;
+                    neurons[xLayer, xNeuron] = sigmoid(total);
                 }
             }
 
@@ -134,9 +120,9 @@ namespace core
             return outputs;
         }
 
-        private double sigmoid(double input)
+        private static double sigmoid(double input)
         {
-            return 1.0 / (1.0 + Math.Pow(2.71828182846, -input));
+            return 1.0/(1.0 + Math.Pow(2.71828182846, -input));
         }
 
         private const float neuronSize = 0.3f;
@@ -190,19 +176,25 @@ namespace core
 
         private void showAxons(GraphicsEngine graphics, int neuronX, int neuronY)
         {
+            Console.WriteLine($"{neuronX} - {neuronY}");
+
             if (neuronX >= 0 && neuronX < BRAIN_WIDTH)
-            {
-                var maxY = axons.GetUpperBound(neuronX);
-                if (neuronY >= 0 && neuronY < maxY)
+                if (neuronY >= 0 && neuronY < BRAIN_HEIGHT)
                 {
                     if (neuronX > 0)
-                        for (var i = 0; i < axons.GetUpperBound(neuronX - 1); i++)
-                            drawAxon(graphics, neuronX - 1, i, neuronX, neuronY);
+                        for (var i = 0; i < BRAIN_HEIGHT; i++)
+                        {
+                            var axon = axons[neuronX - 1, i, neuronY];
+                            drawAxon(graphics, axon, neuronX - 1, i, neuronX, neuronY);
+                        }
+
                     if (neuronX < BRAIN_WIDTH - 1)
-                        for (var i = 0; i < axons.GetUpperBound(neuronX + 1); i++)
-                            drawAxon(graphics, neuronX, neuronY, neuronX + 1, i);
+                        for (var i = 0; i < BRAIN_HEIGHT; i++)
+                        {
+                            var axon = axons[neuronX, neuronY, i];
+                            drawAxon(graphics, axon, neuronX, neuronY, neuronX + 1, i);
+                        }
                 }
-            }
         }
 
         private void drawLabels(GraphicsEngine graphics)
@@ -229,10 +221,13 @@ namespace core
             }
         }
 
-        private void drawAxon(GraphicsEngine graphics, int xFrom, int yFrom, int xTo, int yTo)
+        private void drawAxon(GraphicsEngine graphics, Axon axon, int xFrom, int yFrom, int xTo, int yTo)
         {
-            graphics.stroke(neuronFillColor(axons[xFrom, yFrom, yTo].weight));
             graphics.strokeWeight(0.05f);
+            if (axon != null)
+                graphics.stroke(neuronFillColor(axon.weight));
+            else
+                graphics.stroke(Color.Red);
             graphics.line(xFrom, yFrom, xTo, yTo);
         }
 

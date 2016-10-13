@@ -215,6 +215,7 @@ namespace core
                 return;
 
             var energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
+
             this.graphics.noStroke();
             if (energyUsage <= 0)
             {
@@ -224,8 +225,10 @@ namespace core
             {
                 this.graphics.fill(0.33f, 1, 0.4f);
             }
+
             var eBar = 6*energyUsage;
             this.graphics.rect(110, 280, Math.Min(Math.Max(eBar, -110), 110), 25);
+
             if (eBar < -110)
             {
                 this.graphics.rect(0, 280, 25, (-110 - eBar)*20 + 25);
@@ -235,21 +238,22 @@ namespace core
                 var h = (eBar - 110)*20 + 25;
                 this.graphics.rect(185, 280 - h, 25, h);
             }
-            this.graphics.fill(0, 0, 1);
-            this.graphics.text("Name: " + selectedCreature.getCreatureName(), 10, 225);
-            this.graphics.text("Energy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums", 10, 250);
-            this.graphics.text("E Change: " + (100*energyUsage).ToString(0, 2) + " yums/year", 10, 275);
 
-            this.graphics.text("ID: " + selectedCreature.id, 10, 325);
-            this.graphics.text("X: " + ((float) selectedCreature.px).ToString(0, 2), 10, 350);
-            this.graphics.text("Y: " + ((float) selectedCreature.py).ToString(0, 2), 10, 375);
-            this.graphics.text("Rotation: " + ((float) selectedCreature.rotation).ToString(0, 2), 10, 400);
-            this.graphics.text("B-day: " + toDate(selectedCreature.birthTime), 10, 425);
-            this.graphics.text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
-            this.graphics.text("Generation: " + selectedCreature.gen, 10, 475);
-            this.graphics.text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
-            this.graphics.text("Hue: " + ((float) (selectedCreature.myColor.Hue)).ToString(0, 2), 10, 550, 210, 255);
-            this.graphics.text("Mouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2), 10, 575, 210, 255);
+            this.graphics.fill(0, 0, 1);
+            var text = "";
+            text += "Name: " + selectedCreature.getCreatureName();
+            text += "\nID: " + selectedCreature.id;
+            text += "\nEnergy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums";
+            text += "\nEn. change: " + (100*energyUsage).ToString(0, 2) + " yums/year";
+            text += "\nX: " + ((float) selectedCreature.px).ToString(0, 2);
+            text += "\nY: " + ((float) selectedCreature.py).ToString(0, 2);
+            text += "\nRotation: " + ((float) selectedCreature.rotation).ToString(0, 2);
+            text += "\nB-day: " + toDate(selectedCreature.birthTime) + " (" + toAge(selectedCreature.birthTime) + ")";
+            text += "\nGeneration: " + selectedCreature.gen;
+            text += "\nParents: " + selectedCreature.parents;
+            text += "\nHue: " + ((float) (selectedCreature.myColor.Hue)).ToString(0, 2);
+            text += "\nMouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2);
+            this.graphics.text(text, 0, 550);
 
             if (userControl)
             {
