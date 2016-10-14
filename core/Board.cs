@@ -20,13 +20,7 @@ namespace core
         public double timeStep;
         public double year;
         public double[] fileSaveTimes;
-
-        public readonly double[] letterFrequencies =
-        {
-            8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153, 0.772,
-            4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758, 0.978, 2.361, 0.150, 1.974, 10000.0
-        };
-
+        
         private float maxTemperature;
         private float minTemperature;
         private float temperature;
@@ -241,7 +235,7 @@ namespace core
 
             this.graphics.fill(0, 0, 1);
             var text = "";
-            text += "Name: " + selectedCreature.getCreatureName();
+            text += "Name: " + selectedCreature.name.Name;
             text += "\nID: " + selectedCreature.id;
             text += "\nEnergy: " + (100*(float) selectedCreature.energy).ToString(0, 2) + " yums";
             text += "\nEn. change: " + (100*energyUsage).ToString(0, 2) + " yums/year";
@@ -250,7 +244,7 @@ namespace core
             text += "\nRotation: " + ((float) selectedCreature.rotation).ToString(0, 2);
             text += "\nB-day: " + toDate(selectedCreature.birthTime) + " (" + toAge(selectedCreature.birthTime) + ")";
             text += "\nGeneration: " + selectedCreature.gen;
-            text += "\nParents: " + selectedCreature.parents;
+            text += "\nParents: " + selectedCreature.name.Parents;
             text += "\nHue: " + ((float) (selectedCreature.myColor.Hue)).ToString(0, 2);
             text += "\nMouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2);
             this.graphics.text(text, 0, 550);
@@ -275,9 +269,6 @@ namespace core
         private void drawTopCreatures(float scaleUp, int x1, int y1, int x2)
         {
             var top = getCreaturesOrderdByCriteria();
-            if (selectedCreature == null)
-                selectedCreature = top[0];
-
             var maxEnergy = top.Max(e => e.energy);
 
             for (var i = 0; i < top.Length; i++)
@@ -303,7 +294,7 @@ namespace core
                 }
                 this.graphics.fill(0, 0, 1);
                 this.graphics.text(
-                    top[i].getCreatureName() + " [" + top[i].id + "] (" + toAge(top[i].birthTime) + ")",
+                    top[i].name.Name + " [" + top[i].id + "] (" + toAge(top[i].birthTime) + ")",
                     90, y);
                 this.graphics.text("Energy: " + (100*(float) (top[i].energy)).ToString(0, 2), 90, y + 25);
             }
@@ -651,7 +642,7 @@ namespace core
                     creatures.Add(new Creature(this.graphics, Rnd.nextFloat(0, boardWidth),
                         Rnd.nextFloat(0, boardHeight), 0, 0,
                         Rnd.nextFloat(MIN_CREATURE_ENERGY, MAX_CREATURE_ENERGY), 1, color,
-                        this, year, Rnd.nextFloat(0, 2*Math.PI), 0, "", "[PRIMORDIAL]", true, null, 1,
+                        this, year, Rnd.nextFloat(0, 2*Math.PI), 0, null, null, 1,
                         Rnd.nextFloat(0, 1)));
                 }
             }

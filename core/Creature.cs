@@ -9,7 +9,6 @@ namespace core
     {
         public const double ACCELERATION_BACK_ENERGY = 0.05;
         public const double ACCELERATION_ENERGY = 0.03;
-
         public const double EAT_ENERGY = 0.04;
         public const double EAT_SPEED = 0.9; // 1 is instant, 0 is nonexistent, 0.001 is verrry slow.
         public const double FIGHT_ENERGY = 0.03;
@@ -24,19 +23,15 @@ namespace core
         public const float CROSS_SIZE = 0.05f;
 
         public const int ENERGY_HISTORY_LENGTH = 6;
-        public const int MAX_NAME_LENGTH = 10;
-        public const int MIN_NAME_LENGTH = 3;
-
-        public readonly string name;
-        public readonly string parents;
+        
+        public readonly CreatureName name;
         public readonly int gen;
         public readonly int id;
 
         private readonly double[] previousEnergy = new double[ENERGY_HISTORY_LENGTH];
         private double vr;
         public double rotation;
-
-
+        
         public float preferredRank = 8;
         private static readonly double[] visionAngles = {0, -0.4, 0.4};
         private static readonly double[] visionDistances = {0, 1.42, 1.42};
@@ -53,36 +48,17 @@ namespace core
             GraphicsEngine graphics,
             double tpx, double tpy, double tvx, double tvy, double tenergy,
             double tdensity, HSBColor color, Board tb, double bt,
-            double rot, double tvr, string tname, string tparents, bool mutateName1,
-            Brain tbrain, int tgen, double tmouthHue)
+            double rot, double tvr, CreatureName name,  
+            Brain brain, int tgen, double tmouthHue)
             : base(graphics, tpx, tpy, tvx, tvy, tenergy, tdensity, color, tb, bt)
         {
-            if (tbrain == null)
-                this.brain = new Brain();
-            else
-                this.brain = tbrain;
+            this.name = name ?? new CreatureName();
+            this.brain = brain ?? new Brain();
 
             rotation = rot;
             vr = tvr;
             isCreature = true;
             id = board.creatureIDUpTo + 1;
-            if (tname.Length >= 1)
-            {
-                if (mutateName1)
-                {
-                    name = mutateName(tname);
-                }
-                else
-                {
-                    name = tname;
-                }
-                name = sanitizeName(name);
-            }
-            else
-            {
-                name = createNewName();
-            }
-            parents = tparents;
             board.creatureIDUpTo++;
             //visionAngle = 0;
             //visionDistance = 0;
@@ -104,7 +80,7 @@ namespace core
                 this.myColor.Hue = (float) Math.Min(Math.Max(outputs[0], 0), 1);
                 this.mouthHue = Math.Min(Math.Max(outputs[1], 0), 1);
                 this.accelerate(outputs[2], timeStep);
-                this.turn(outputs[3], timeStep);
+                this.turn(outputs[3]*2.0 - 1.0, timeStep);
                 this.eat(outputs[4], timeStep);
                 this.fight(outputs[5], timeStep);
 
@@ -187,7 +163,7 @@ namespace core
                 this.graphics.fill(0, 0, 1);
                 this.graphics.textSize(0.3f*scaleUp);
                 this.graphics.textAlign(AlignText.CENTER);
-                this.graphics.text(getCreatureName(), (float) (px*scaleUp), (float) ((py - getRadius()*1.4)*scaleUp));
+                this.graphics.text(this.name.Name, (float) (px*scaleUp), (float) ((py - getRadius()*1.4)*scaleUp));
             }
         }
 
@@ -199,8 +175,8 @@ namespace core
         public void accelerate(double amount, double timeStep)
         {
             var multiplied = amount*timeStep/getMass();
-            vx += Math.Cos(rotation)*multiplied;
-            vy += Math.Sin(rotation)*multiplied;
+            this.vx += Math.Cos(rotation)*multiplied;
+            this.vy += Math.Sin(rotation)*multiplied;
             if (amount >= 0)
             {
                 loseEnergy(amount*ACCELERATION_ENERGY*timeStep);
@@ -213,7 +189,6 @@ namespace core
 
         public void turn(double amount, double timeStep)
         {
-            amount = (amount - 0.5)*2.0;
             vr += 0.04*amount*timeStep/getMass();
             loseEnergy(Math.Abs(amount*TURN_ENERGY*energy*timeStep));
         }
@@ -235,7 +210,7 @@ namespace core
 
         public void eat(double attemptedAmount, double timeStep)
         {
-            var amount = attemptedAmount/(1.0 + distance(0, 0, vx, vy));
+            var amount = attemptedAmount/(1.0 + distance(0, 0, this.vx, this.vy));
 
             // The faster you're moving, the less efficiently you can eat.
             if (amount < 0)
@@ -456,6 +431,7 @@ namespace core
                 }
 
                 var parentBrains = parentCreatures.Select(p => p.brain).ToArray();
+                var parentNames = parentCreatures.Select(p => p.name).ToArray();
                 if (availableEnergy > babySize)
                 {
                     double newPX = Rnd.nextFloat(-0.01, 0.01);
@@ -464,10 +440,9 @@ namespace core
 
                     double newMouthHue = 0;
                     var parentsTotal = parentCreatures.Count;
-                    var parentNames = new string[parentsTotal];
 
                     var newBrain = Brain.spawnFrom(parentBrains);
-                    
+
                     var newColor = new HSBColor(0, 1, 1);
                     for (var i = 0; i < parentsTotal; i++)
                     {
@@ -486,160 +461,16 @@ namespace core
                         }
                     }
 
+                    var newName = CreatureName.SpawnFrom(parentNames);
+
                     board.creatures.Add(new Creature(this.graphics, newPX, newPY, 0, 0,
                         babySize, density, newColor, board, board.year,
                         Rnd.nextFloat(0, 2*Math.PI), 0,
-                        stitchName(parentNames), andifyParents(parentNames), true,
-                        newBrain, highestGen + 1, newMouthHue));
+                        newName, newBrain, highestGen + 1, newMouthHue));
                 }
             }
         }
-
-        public string stitchName(string[] parts)
-        {
-            var result = "";
-            for (var i = 0; i < parts.Length; i++)
-            {
-                var portion = ((float) parts[i].Length)/parts.Length;
-                var start = (int) Math.Min(Math.Max((float) Math.Round(portion*i), 0), parts[i].Length);
-                var end = (int) Math.Min(Math.Max((float) Math.Round(portion*(i + 1)), 0), parts[i].Length);
-                result = result + parts[i].Substr(start, end);
-            }
-            return result;
-        }
-
-        public string andifyParents(string[] parts)
-        {
-            var result = "";
-            for (var i = 0; i < parts.Length; i++)
-            {
-                if (i >= 1)
-                {
-                    result = result + " & ";
-                }
-                result = result + capitalize(parts[i]);
-            }
-            return result;
-        }
-
-        public string createNewName()
-        {
-            var nameSoFar = "";
-            var chosenLength = Rnd.nextFloat(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
-            for (var i = 0; i < chosenLength; i++)
-            {
-                nameSoFar += getRandomChar();
-            }
-            return sanitizeName(nameSoFar);
-        }
-
-        public char getRandomChar()
-        {
-            float letterFactor = Rnd.nextFloat(0, 100);
-            var letterChoice = 0;
-            while (letterFactor > 0)
-            {
-                letterFactor -= (float) board.letterFrequencies[letterChoice];
-                letterChoice++;
-            }
-            return (char) (letterChoice + 96);
-        }
-
-        public string sanitizeName(string input)
-        {
-            var output = "";
-            var vowelsSoFar = 0;
-            var consonantsSoFar = 0;
-            for (var i = 0; i < input.Length; i++)
-            {
-                var ch = input[i];
-                if (isVowel(ch))
-                {
-                    consonantsSoFar = 0;
-                    vowelsSoFar++;
-                }
-                else
-                {
-                    vowelsSoFar = 0;
-                    consonantsSoFar++;
-                }
-                if (vowelsSoFar <= 2 && consonantsSoFar <= 2)
-                {
-                    output = output + ch;
-                }
-                else
-                {
-                    var chanceOfAddingChar = 0.5;
-                    if (input.Length <= MIN_NAME_LENGTH)
-                    {
-                        chanceOfAddingChar = 1.0;
-                    }
-                    else if (input.Length >= MAX_NAME_LENGTH)
-                    {
-                        chanceOfAddingChar = 0.0;
-                    }
-                    if (Rnd.nextFloat(0, 1) < chanceOfAddingChar)
-                    {
-                        var extraChar = ' ';
-                        while (extraChar == ' ' || (isVowel(ch) == isVowel(extraChar)))
-                        {
-                            extraChar = getRandomChar();
-                        }
-                        output = output + extraChar + ch;
-                        if (isVowel(ch))
-                        {
-                            consonantsSoFar = 0;
-                            vowelsSoFar = 1;
-                        }
-                        else
-                        {
-                            consonantsSoFar = 1;
-                            vowelsSoFar = 0;
-                        }
-                    }
-                }
-            }
-            return output;
-        }
-
-        public string getCreatureName()
-        {
-            return capitalize(name);
-        }
-
-        public string capitalize(string n)
-        {
-            return n.Substring(0, 1).ToUpper() + n.Substr(1, n.Length);
-        }
-
-        public bool isVowel(char a)
-        {
-            return (a == 'a' || a == 'e' || a == 'i' || a == 'o' || a == 'u' || a == 'y');
-        }
-
-        public string mutateName(string input)
-        {
-            if (input.Length >= 3)
-            {
-                if (Rnd.nextFloat(0, 1) < 0.2)
-                {
-                    var removeIndex = Rnd.nextInt(0, input.Length);
-                    input = input.Substr(0, removeIndex) + input.Substr(removeIndex + 1, input.Length);
-                }
-            }
-            if (input.Length <= 9)
-            {
-                if (Rnd.nextFloat(0, 1) < 0.2)
-                {
-                    var insertIndex = Rnd.nextInt(0, input.Length + 1);
-                    input = input.Substr(0, insertIndex) + getRandomChar() + input.Substr(insertIndex, input.Length);
-                }
-            }
-            var changeIndex = Rnd.nextInt(0, input.Length);
-            input = input.Substr(0, changeIndex) + getRandomChar() + input.Substr(changeIndex + 1, input.Length);
-            return input;
-        }
-
+        
         public override void applyMotions(double timeStep)
         {
             if (getRandomCoveredTile().fertility > 1)

@@ -34,5 +34,10 @@ namespace core
             var text = string.Join(", ", values.Select(v => v.ToString("0.00")));
             Console.WriteLine(text);
         }
+
+        public static string Capitalize(this string n)
+        {
+            return n.Substring(0, 1).ToUpper() + n.Substr(1, n.Length);
+        }
     }
 }

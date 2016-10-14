@@ -58,9 +58,9 @@ namespace core
         {
             var child = new Brain(true);
 
-            for (var xLayer = 1; xLayer < BRAIN_WIDTH; xLayer++)
+            for (var layer = 1; layer < BRAIN_WIDTH; layer++)
             {
-                for (var xNeuron = 0; xNeuron < BRAIN_HEIGHT; xNeuron++)
+                for (var neuronY = 0; neuronY < BRAIN_HEIGHT; neuronY++)
                 {
                     var startingParent = Rnd.nextInt(0, parents.Length);
                     var parentRatio = 0.5;
@@ -69,10 +69,10 @@ namespace core
                     {
                         var currentParent = parents[(startingParent + p)%parents.Length];
 
-                        for (var xPrevNeuron = 0; xPrevNeuron < BRAIN_HEIGHT; xPrevNeuron++)
+                        for (var prevNeuronY = 0; prevNeuronY < BRAIN_HEIGHT; prevNeuronY++)
                         {
-                            var childAxon = child.axon(xPrevNeuron, xLayer, xNeuron);
-                            var parentAxon = currentParent.axon(xPrevNeuron, xLayer, xNeuron);
+                            var childAxon = child.axon(prevNeuronY, layer, neuronY);
+                            var parentAxon = currentParent.axon(prevNeuronY, layer, neuronY);
                             childAxon.weight += parentAxon.weight*parentRatio;
                             childAxon.mutability += parentAxon.mutability*parentRatio;
                         }
@@ -83,7 +83,7 @@ namespace core
 
                     for (var xPrevNeuron = 0; xPrevNeuron < BRAIN_HEIGHT; xPrevNeuron++)
                     {
-                        var childAxon = child.axon(xPrevNeuron, xLayer, xNeuron);
+                        var childAxon = child.axon(xPrevNeuron, layer, neuronY);
                         childAxon.weight /= parentRatioSum;
                         childAxon.mutability /= parentRatioSum;
                     }

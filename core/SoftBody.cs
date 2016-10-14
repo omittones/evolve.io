@@ -12,11 +12,11 @@ namespace core
 
         public double px;
         public double py;
-        public double vx;
-        public double vy;
+        protected double vx;
+        protected double vy;
         public double energy;
-        public double density;
-        public double birthTime;
+        public readonly double density;
+        public readonly double birthTime;
         public bool isCreature = false;
         public readonly float FRICTION = 0.03f;
         public readonly float COLLISION_FORCE = 0.1f;
