@@ -27,15 +27,15 @@ namespace core
             Parents = parents;
         }
 
-        public static CreatureName SpawnFrom(params CreatureName[] parts)
+        public static CreatureName spawnFrom(params CreatureName[] parents)
         {
             var result = new CreatureName("", "");
-            for (var i = 0; i < parts.Length; i++)
+            for (var i = 0; i < parents.Length; i++)
             {
-                var portion = ((float) parts[i].Name.Length)/parts.Length;
-                var start = (int) Math.Min(Math.Max((float) Math.Round(portion*i), 0), parts[i].Name.Length);
-                var end = (int) Math.Min(Math.Max((float) Math.Round(portion*(i + 1)), 0), parts[i].Name.Length);
-                result.Name = result.Name + parts[i].Name.Substr(start, end);
+                var portion = ((float) parents[i].Name.Length)/parents.Length;
+                var start = (int) Math.Min(Math.Max((float) Math.Round(portion*i), 0), parents[i].Name.Length);
+                var end = (int) Math.Min(Math.Max((float) Math.Round(portion*(i + 1)), 0), parents[i].Name.Length);
+                result.Name = result.Name + parents[i].Name.Substr(start, end);
             }
 
             if (result.Name.Length >= 1)
@@ -48,7 +48,7 @@ namespace core
                 result = new CreatureName();
             }
 
-            result.Parents = andifyParents(parts);
+            result.Parents = andifyParents(parents);
 
             return result;
         }

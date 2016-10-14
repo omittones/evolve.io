@@ -11,7 +11,7 @@ namespace core
         public readonly HSBColor barrenColor = Color.Gray;
         public readonly HSBColor fertileColor = Color.LawnGreen;
         public readonly HSBColor blackColor = Color.Black;
-        public readonly HSBColor waterColor = Color.DeepSkyBlue;
+        public readonly HSBColor waterColor = Color.DarkBlue;
 
         public readonly float fertility;
         private readonly float maxGrowthLevel = 1.0f;
@@ -22,12 +22,12 @@ namespace core
         public float foodType;
         public float foodLevel;
 
-        public Tile(int x, int y, float maxFertility, float maxFood, float foodType)
+        public Tile(int x, int y, float fertility, float foodLevel, float foodType)
         {
             this.posX = x;
             this.posY = y;
-            this.fertility = Math.Max(0, maxFertility);
-            this.foodLevel = Math.Max(0, maxFood);
+            this.fertility = Math.Max(0, fertility);
+            this.foodLevel = Math.Max(0, foodLevel);
             this.climateType = foodType;
             this.foodType = foodType;
         }
@@ -96,14 +96,14 @@ namespace core
         {
             var foodColor = new HSBColor(foodType, 1, 1);
             if (fertility > 1)
-            {
                 return waterColor;
-            }
+
             if (foodLevel < maxGrowthLevel)
             {
                 return interColorFixedHue(interColor(barrenColor, fertileColor, fertility), foodColor,
                     foodLevel/maxGrowthLevel, foodColor.Hue);
             }
+
             return interColorFixedHue(foodColor, blackColor, 1.0f - maxGrowthLevel/foodLevel, foodColor.Hue);
         }
 

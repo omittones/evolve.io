@@ -7,16 +7,16 @@ namespace core
     {
         public const double TIME_STEP = 0.001;
 
-        public const int CREATURE_MINIMUM = 60;
-        public const int ROCKS_TO_ADD = 0;
-        public const int SEED = 48;
+        public const int CREATURE_MINIMUM = 100;
+        public const int ROCKS_TO_ADD = 10;
+        public const int SEED = 49;
         public const string INITIAL_FILE_NAME = "DEFAULT";
         public const float MAX_TEMPERATURE = 1.0f;
         public const float MIN_TEMPERATURE = -0.5f;
         public const float NOISE_STEP_SIZE = 0.1f;
         public const float SCALE_TO_FIX_BUG = 100;
-        public const int BOARD_HEIGHT = 50;
-        public const int BOARD_WIDTH = 50;
+        public const int BOARD_HEIGHT = 100;
+        public const int BOARD_WIDTH = 100;
 
         private int windowWidth;
         private int windowHeight;
@@ -120,15 +120,15 @@ namespace core
 
         public void handleMouseWheel(MouseEvent @event)
         {
-            const float step = 0.01f;
-            var delta = @event.Count()/120f;
+            const float step = 0.2f;
+            var delta = @event.Count();
             if (delta > 0)
             {
-                setZoom(zoom*(1 - step), this.input.MouseX, this.input.MouseY);
+                setZoom(zoom*(1 + step), this.input.MouseX, this.input.MouseY);
             }
             else if (delta < 0)
             {
-                setZoom(zoom*(1 + step), this.input.MouseX, this.input.MouseY);
+                setZoom(zoom*(1 - step), this.input.MouseX, this.input.MouseY);
             }
         }
 

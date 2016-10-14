@@ -20,7 +20,7 @@ namespace core
         public double timeStep;
         public double year;
         public double[] fileSaveTimes;
-        
+
         private float maxTemperature;
         private float minTemperature;
         private float temperature;
@@ -71,13 +71,16 @@ namespace core
             tiles = new Tile[width, height];
             for (var x = 0; x < boardWidth; x++)
             {
+                var scaledX = x*stepSize;
                 for (var y = 0; y < boardHeight; y++)
                 {
+                    var scaledY = y*stepSize;
+
                     var bigForce = Math.Pow(((float) y)/boardHeight, 0.5);
                     var fertility = (float)
-                        (Rnd.noise(x*stepSize*3f, y*stepSize*3f)*(1 - bigForce)*5.0f +
-                         Rnd.noise(x*stepSize*0.5f, y*stepSize*0.5f)*bigForce*5.0f - 1.5f);
-                    var climateType = (float) (Rnd.noise(x*stepSize + 10000, y*stepSize + 10000)*1.63f - 0.4f);
+                        (Rnd.noise(scaledX*3f, scaledY*3f)*(1 - bigForce)*5.0f +
+                         Rnd.noise(scaledX*0.5f, scaledY*0.5f)*bigForce*5.0f - 1.5f);
+                    var climateType = Rnd.noise(scaledX + 10000, scaledY + 10000)*1.63f - 0.4f;
                     climateType = Math.Min(Math.Max(climateType, 0), 0.8f);
                     tiles[x, y] = new Tile(x, y, fertility, 0, climateType);
                 }
@@ -128,10 +131,10 @@ namespace core
                     tiles[x, y].drawTile(this.graphics, scaleUp, (mX == x && mY == y));
 
             foreach (var rock in rocks)
-                rock.drawSoftBody(scaleUp);
+                rock.draw(scaleUp);
 
             foreach (var creature in creatures)
-                creature.drawSoftBody(scaleUp, camZoom, true);
+                creature.draw(scaleUp, camZoom, true);
         }
 
         public void drawBlankBoard(float scaleUp)
@@ -245,7 +248,7 @@ namespace core
             text += "\nB-day: " + toDate(selectedCreature.birthTime) + " (" + toAge(selectedCreature.birthTime) + ")";
             text += "\nGeneration: " + selectedCreature.gen;
             text += "\nParents: " + selectedCreature.name.Parents;
-            text += "\nHue: " + ((float) (selectedCreature.myColor.Hue)).ToString(0, 2);
+            text += "\nHue: " + selectedCreature.myColor.Hue.ToString(0, 2);
             text += "\nMouth hue: " + ((float) (selectedCreature.mouthHue)).ToString(0, 2);
             this.graphics.text(text, 0, 550);
 
@@ -666,7 +669,7 @@ namespace core
             this.graphics.translate((float) (-creature.px*scaleIconUp), (float) (-creature.py*scaleIconUp));
             this.graphics.translate(x, y);
 
-            creature.drawSoftBody(scaleIconUp, 40.0f/scale, false);
+            creature.draw(scaleIconUp, 40.0f/scale, false);
 
             this.graphics.popMatrix();
         }

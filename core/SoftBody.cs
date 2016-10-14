@@ -170,7 +170,7 @@ namespace core
                 throw new ApplicationException("Invalid values!");
         }
 
-        public void drawSoftBody(float scaleUp)
+        public virtual void draw(float scaleUp)
         {
             var radius = getRadius();
             this.graphics.stroke(0, 0, 0);

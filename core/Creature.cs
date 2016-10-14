@@ -89,7 +89,7 @@ namespace core
             }
         }
 
-        public void drawSoftBody(float scaleUp, float camZoom, bool showVision)
+        public void draw(float scaleUp, float camZoom, bool showVision)
         {
             var radius = getRadius();
             if (showVision)
@@ -142,7 +142,7 @@ namespace core
                     (float) (radius*scaleUp + 1 + 75.0/camZoom), (float) (radius*scaleUp + 1 + 75.0/camZoom));
             }
 
-            this.drawSoftBody(scaleUp);
+            this.draw(scaleUp);
 
             this.graphics.noFill();
             this.graphics.strokeWeight(2);
@@ -281,7 +281,7 @@ namespace core
             {
                 energyLost = Math.Min(energyLost, energy);
                 energy -= energyLost;
-                getRandomCoveredTile().addFood((float) energyLost, (float) this.myColor.Hue);
+                getRandomCoveredTile().addFood((float) energyLost, this.myColor.Hue);
             }
         }
 
@@ -390,7 +390,7 @@ namespace core
             const int pieces = 20;
             for (var i = 0; i < pieces; i++)
             {
-                getRandomCoveredTile().addFood((float) energy/pieces, (float) this.myColor.Hue);
+                getRandomCoveredTile().addFood((float) energy/pieces, this.myColor.Hue);
             }
 
             for (var x = SBIPMinX; x <= SBIPMaxX; x++)
@@ -461,7 +461,7 @@ namespace core
                         }
                     }
 
-                    var newName = CreatureName.SpawnFrom(parentNames);
+                    var newName = CreatureName.spawnFrom(parentNames);
 
                     board.creatures.Add(new Creature(this.graphics, newPX, newPY, 0, 0,
                         babySize, density, newColor, board, board.year,
